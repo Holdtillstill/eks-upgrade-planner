@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://eks-upgrade-planner.example.com/</loc><lastmod>2026-05-28</lastmod><priority>1.0</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/app</loc><lastmod>2026-05-28</lastmod><priority>1.0</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/versions</loc><lastmod>2026-05-28</lastmod><priority>0.9</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/extended-support-cost-calculator</loc><lastmod>2026-05-28</lastmod><priority>0.9</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/upgrade-planner</loc><lastmod>2026-05-28</lastmod><priority>0.9</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/deprecated-api-scanner</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/addons</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/evidence-pack</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-35-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-34-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-33-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-32-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-31-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-30-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-29-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/eks/1-28-upgrade-guide</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/vpc-cni/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/coredns/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/kube-proxy/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/ebs-csi/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/aws-load-balancer-controller/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/karpenter/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/cert-manager/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/ingress-nginx/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/argo-cd/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+  <url><loc>https://eks-upgrade-planner.example.com/addons/kube-prometheus-stack/eks-compatibility</loc><lastmod>2026-05-28</lastmod><priority>0.7</priority></url>
+</urlset>

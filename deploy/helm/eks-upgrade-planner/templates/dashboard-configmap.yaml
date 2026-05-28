@@ -1,0 +1,14 @@
+{{- if .Values.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "eks-upgrade-planner.fullname" . }}-grafana-dashboard
+  labels:
+    {{- include "eks-upgrade-planner.labels" . | nindent 4 }}
+    {{- with .Values.grafanaDashboard.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+data:
+  eks-upgrade-planner.json: |-
+{{ .Files.Get "dashboards/eks-upgrade-planner-dashboard.json" | indent 4 }}
+{{- end }}

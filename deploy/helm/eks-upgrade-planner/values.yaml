@@ -1,0 +1,109 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/your-org/eks-upgrade-planner
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+containerPort: 8080
+
+env:
+  nodeEnv: production
+  logLevel: info
+  appBaseUrl: https://eks-upgrade-planner.example.com
+  enableHsts: "true"
+
+extraEnv: []
+
+otel:
+  enabled: true
+  endpoint: http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318
+  serviceName: eks-upgrade-planner
+  logsEnabled: true
+  resourceAttributes:
+    service.namespace: public-tools
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # If exposing the app through nginx-ingress, keep /metrics off the public host.
+  # Prometheus should scrape the ClusterIP Service/ServiceMonitor instead.
+  blockMetricsPath: true
+  hosts:
+    - host: eks-upgrade-planner.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+metrics:
+  auth:
+    enabled: false
+    # For public ingress, prefer enabling this and providing an existing secret.
+    # The secret must contain a token key unless you override tokenKey.
+    existingSecret: ""
+    tokenKey: token
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  scrapeTimeout: 10s
+  labels: {}
+
+grafanaDashboard:
+  enabled: true
+  labels:
+    grafana_dashboard: "1"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 96Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
+  observabilityNamespace: observability
+  ingressFrom: []
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 100
+  runAsGroup: 101
+  fsGroup: 101
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

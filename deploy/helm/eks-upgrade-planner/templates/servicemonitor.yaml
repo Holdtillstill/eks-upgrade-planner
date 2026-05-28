@@ -1,0 +1,27 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "eks-upgrade-planner.fullname" . }}
+  labels:
+    {{- include "eks-upgrade-planner.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "eks-upgrade-planner.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+      {{- if and .Values.metrics.auth.enabled .Values.metrics.auth.existingSecret }}
+      authorization:
+        type: Bearer
+        credentials:
+          name: {{ .Values.metrics.auth.existingSecret | quote }}
+          key: {{ .Values.metrics.auth.tokenKey | quote }}
+      {{- end }}
+{{- end }}

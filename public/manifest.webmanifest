@@ -1,0 +1,19 @@
+{
+  "name": "EKS Upgrade Planner",
+  "short_name": "EKS Planner",
+  "description": "Plan Amazon EKS Kubernetes upgrades, support cost exposure, add-on checks, and deprecated API cleanup.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
