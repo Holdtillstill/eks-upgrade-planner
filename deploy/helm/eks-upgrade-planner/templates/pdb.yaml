@@ -1,0 +1,13 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "eks-upgrade-planner.fullname" . }}
+  labels:
+    {{- include "eks-upgrade-planner.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "eks-upgrade-planner.selectorLabels" . | nindent 6 }}
+{{- end }}

@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "eks-upgrade-planner.fullname" . }}-config
+  labels:
+    {{- include "eks-upgrade-planner.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.env.nodeEnv | quote }}
+  LOG_LEVEL: {{ .Values.env.logLevel | quote }}
+  HOST: "0.0.0.0"
+  PORT: {{ .Values.containerPort | quote }}
+  APP_BASE_URL: {{ .Values.env.appBaseUrl | quote }}
+  APP_VERSION: {{ .Chart.AppVersion | quote }}
+  ENABLE_HSTS: {{ .Values.env.enableHsts | quote }}
+  OTEL_SERVICE_NAME: {{ .Values.otel.serviceName | quote }}
+  {{- if .Values.otel.enabled }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.otel.endpoint | quote }}
+  OTEL_LOGS_EXPORTER: {{ ternary "otlp" "none" .Values.otel.logsEnabled | quote }}
+  OTEL_RESOURCE_ATTRIBUTES: {{ range $key, $value := .Values.otel.resourceAttributes }}{{ $key }}={{ $value }},{{ end }}deployment.environment={{ .Values.env.nodeEnv }}
+  {{- else }}
+  OTEL_LOGS_EXPORTER: "none"
+  {{- end }}

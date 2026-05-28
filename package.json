@@ -5,10 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "build": "npm run typecheck && vite build",
     "lint": "eslint .",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server/index.js",
+    "start:prod": "NODE_ENV=production node server/index.js",
+    "smoke:local": "node server/smoke.js"
   },
   "dependencies": {
     "react": "^19.2.6",
