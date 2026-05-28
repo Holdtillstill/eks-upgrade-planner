@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import './App.css';
 import { addons } from './data/addons';
 import { deprecations } from './data/deprecations';
 import { dataFreshness, eksVersions, type EksVersion } from './data/versions';
 import { eksPricing } from './data/pricing';
+import { addonCompatibilityPath, addonValidationChecklist, findAddonBySlug } from './lib/addonLookup';
 import {
   calculateEksSupportCost,
   compareEksVersions,
@@ -15,10 +16,20 @@ import {
   scanDeprecatedApis,
   statusLabel,
 } from './lib/planner';
+import {
+  buildVersionGuide,
+  generateCostReport,
+  generateEvidenceReport,
+  generatePlannerMarkdown,
+  nodeModelChecks,
+  nodeModelLabels,
+  scanExampleManifest,
+  scanManifest,
+  type NodeModel,
+} from './lib/reports';
+import { productTabs, resolveAppRoute, versionGuidePath, type AppRoute, type DesignRoute, type ProductTab } from './lib/routes';
 
-type Route = '/1' | '/2' | '/3' | '/4' | '/5' | '/6' | '/7' | '/8' | '/9' | '/10';
-
-const routes: { path: Route; name: string; idea: string }[] = [
+const routes: { path: DesignRoute; name: string; idea: string }[] = [
   { path: '/1', name: 'Mission Control', idea: 'orbital command center' },
   { path: '/2', name: 'Executive Memo', idea: 'boardroom cost narrative' },
   { path: '/3', name: 'Blueprint Lab', idea: 'technical upgrade drafting table' },
@@ -46,14 +57,13 @@ kind: FlowSchema
 metadata:
   name: noisy-tenants`;
 
-function routeFromLocation(): Route {
-  const path = window.location.pathname as Route;
-  return routes.some((r) => r.path === path) ? path : '/1';
+function routeFromLocation(): AppRoute {
+  return resolveAppRoute(window.location.pathname);
 }
 
-function navigate(path: Route, setRoute: (path: Route) => void) {
+function navigate(path: string, setRoute: (route: AppRoute) => void) {
   window.history.pushState({}, '', path);
-  setRoute(path);
+  setRoute(resolveAppRoute(path));
 }
 
 function Source({ label, url }: { label: string; url: string }) {
@@ -70,7 +80,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
   return <button className="copy" type="button" onClick={copy}>{copied ? 'Copied' : label}</button>;
 }
 
-function DesignNav({ active, setRoute }: { active: Route; setRoute: (path: Route) => void }) {
+function DesignNav({ active, setRoute }: { active: DesignRoute; setRoute: (route: AppRoute) => void }) {
   return <nav className="design-nav" aria-label="Design variants">
     <a className="brand" onClick={() => navigate('/1', setRoute)}><span/>EKS Upgrade Planner</a>
     <div>{routes.map((r) => <button key={r.path} className={active === r.path ? 'active' : ''} onClick={() => navigate(r.path, setRoute)}>{r.path}<em>{r.name}</em></button>)}</div>
@@ -628,7 +638,652 @@ ${addons.slice(0, 6).flatMap((addon) => addon.checks).join('\n')}`;
   </main>;
 }
 
-function CurrentDesign({ route }: { route: Route }) {
+const defaultSelectedAddons = Object.fromEntries(addons.map((addon) => [
+  addon.id,
+  ['vpc-cni', 'coredns', 'kube-proxy', 'karpenter', 'aws-load-balancer-controller'].includes(addon.id),
+])) as Record<string, boolean>;
+
+const nodeModelIds = Object.keys(nodeModelLabels) as NodeModel[];
+
+function selectedAddonIdsFrom(record: Record<string, boolean>) {
+  return addons.filter((addon) => record[addon.id]).map((addon) => addon.id);
+}
+
+function uniqueSources() {
+  const sourceMap = new Map<string, string>();
+  sourceMap.set(dataFreshness.sourceUrl, dataFreshness.sourceLabel);
+  sourceMap.set(eksPricing.sourceUrl, eksPricing.sourceLabel);
+  for (const version of eksVersions) {
+    sourceMap.set(version.sourceUrl, version.sourceLabel);
+    if (version.releaseUrl) sourceMap.set(version.releaseUrl, `EKS ${version.version} release note`);
+  }
+  for (const addon of addons) sourceMap.set(addon.sourceUrl, addon.sourceLabel);
+  for (const rule of deprecations) sourceMap.set(rule.migrationGuide, rule.sourceLabel);
+  return [...sourceMap.entries()].map(([url, label]) => ({ url, label }));
+}
+
+function ProductSourcesPanel() {
+  const sources = uniqueSources();
+  return <aside className="product-sources" aria-label="Data freshness and source links">
+    <div>
+      <span className="eyebrow">Data Freshness</span>
+      <strong>{dataFreshness.checkedAt}</strong>
+      <p>{dataFreshness.note}</p>
+    </div>
+    <div className="trust-box">
+      <span className="eyebrow">Trust Model</span>
+      <p>Runs locally in the browser. No AWS APIs, accounts, credentials, cluster discovery, or manifest upload are used.</p>
+      <p>Cost values are estimates for the EKS control-plane support tier only.</p>
+    </div>
+    <div className="source-list">
+      <span className="eyebrow">Sources</span>
+      {sources.map((source) => <Source key={source.url} label={source.label} url={source.url}/>)}
+    </div>
+  </aside>;
+}
+
+function ProductTabs({ active, guideVersion, setRoute }: { active: ProductTab; guideVersion: string; setRoute: (route: AppRoute) => void }) {
+  return <nav className="product-tabs" aria-label="EKS planner sections">
+    {productTabs.map((tab) => {
+      const path = tab.id === 'guides' ? versionGuidePath(guideVersion) : tab.path;
+      return <a
+        key={tab.id}
+        className={active === tab.id ? 'active' : ''}
+        href={path}
+        onClick={(event) => {
+          event.preventDefault();
+          navigate(path, setRoute);
+        }}
+      >
+        {tab.label}
+      </a>;
+    })}
+  </nav>;
+}
+
+function ProductField({ label, children }: { label: string; children: ReactNode }) {
+  return <label className="product-field">
+    <span>{label}</span>
+    {children}
+  </label>;
+}
+
+function VersionSelect({ value, onChange, versions = eksVersions }: { value: string; onChange: (value: string) => void; versions?: EksVersion[] }) {
+  return <select value={value} onChange={(event) => onChange(event.target.value)}>
+    {versions.map((version) => <option key={version.version} value={version.version}>EKS {version.version}</option>)}
+  </select>;
+}
+
+function ProductMetric({ label, value, detail, tone }: { label: string; value: string; detail: string; tone?: 'ok' | 'warn' | 'bad' }) {
+  return <div className={`product-metric ${tone ?? ''}`}>
+    <span>{label}</span>
+    <strong>{value}</strong>
+    <p>{detail}</p>
+  </div>;
+}
+
+function OverviewSection({
+  currentVersion,
+  targetVersion,
+  clusterCount,
+  monthsDelayed,
+  scannerFindings,
+  selectedAddonIds,
+  setCurrentVersion,
+  setRoute,
+}: {
+  currentVersion: string;
+  targetVersion: string;
+  clusterCount: number;
+  monthsDelayed: number;
+  scannerFindings: ReturnType<typeof scanManifest>;
+  selectedAddonIds: string[];
+  setCurrentVersion: (value: string) => void;
+  setRoute: (route: AppRoute) => void;
+}) {
+  const selected = eksVersions.find((version) => version.version === currentVersion) ?? eksVersions[0];
+  const target = compareEksVersions(targetVersion, currentVersion) < 0 ? currentVersion : targetVersion;
+  const hops = generateHopSequence(currentVersion, target);
+  const { cost } = costSummary(currentVersion, clusterCount, monthsDelayed);
+  const tone = statusTone(selected);
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Overview</span>
+        <h1>EKS upgrade workspace</h1>
+      </div>
+      <p>Local planning surface for lifecycle dates, support-tier exposure, upgrade hops, pasted-manifest scanning, add-on checks, and review evidence.</p>
+    </div>
+
+    <div className="metric-row">
+      <ProductMetric label="Selected version" value={`EKS ${selected.version}`} detail={statusLabel(getSupportStatus(selected))} tone={tone}/>
+      <ProductMetric label="Next hop" value={hops[1] ? `EKS ${hops[1]}` : 'No hop'} detail={`${hops.length - 1} control-plane hop(s) to ${target}`}/>
+      <ProductMetric label="Cost exposure" value={formatCurrency(cost.extraTotal)} detail={`${clusterCount} cluster(s), ${monthsDelayed} month model`} tone={cost.extraTotal > 0 ? 'warn' : 'ok'}/>
+      <ProductMetric label="Scanner findings" value={String(scannerFindings.length)} detail="Deprecated API matches in pasted text" tone={scannerFindings.length ? 'bad' : 'ok'}/>
+      <ProductMetric label="Add-ons selected" value={String(selectedAddonIds.length)} detail="Checklist groups included in planner"/>
+    </div>
+
+    <div className="overview-layout">
+      <section className="product-panel">
+        <div className="panel-title">
+          <h2>Lifecycle Watchlist</h2>
+          <Source label={dataFreshness.sourceLabel} url={dataFreshness.sourceUrl}/>
+        </div>
+        <div className="version-strip">
+          {eksVersions.map((version) => <button
+            type="button"
+            key={version.version}
+            className={`${statusTone(version)} ${version.version === selected.version ? 'active' : ''}`}
+            onClick={() => setCurrentVersion(version.version)}
+          >
+            <strong>{version.version}</strong>
+            <span>{deadlineCopy(version)}</span>
+          </button>)}
+        </div>
+      </section>
+
+      <section className="product-panel">
+        <div className="panel-title">
+          <h2>Primary Actions</h2>
+        </div>
+        <div className="action-list">
+          <a href="/eks/upgrade-planner" onClick={(event) => { event.preventDefault(); navigate('/eks/upgrade-planner', setRoute); }}>Draft upgrade RFC</a>
+          <a href="/eks/deprecated-api-scanner" onClick={(event) => { event.preventDefault(); navigate('/eks/deprecated-api-scanner', setRoute); }}>Scan pasted manifests</a>
+          <a href={versionGuidePath(currentVersion)} onClick={(event) => { event.preventDefault(); navigate(versionGuidePath(currentVersion), setRoute); }}>Open EKS {currentVersion} guide</a>
+          <a href="/eks/evidence-pack" onClick={(event) => { event.preventDefault(); navigate('/eks/evidence-pack', setRoute); }}>Assemble evidence pack</a>
+        </div>
+      </section>
+    </div>
+  </section>;
+}
+
+function VersionsSection({ currentVersion, setCurrentVersion, setRoute }: { currentVersion: string; setCurrentVersion: (value: string) => void; setRoute: (route: AppRoute) => void }) {
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Versions</span>
+        <h1>EKS lifecycle table</h1>
+      </div>
+      <p>Static source-linked lifecycle data. Use it for planning context, then verify against AWS before production approvals.</p>
+    </div>
+
+    <div className="product-table-wrap">
+      <table className="product-table">
+        <thead><tr><th>Version</th><th>Status</th><th>Release</th><th>Standard support end</th><th>Extended support end</th><th>Platform</th><th>Source</th><th>Guide</th></tr></thead>
+        <tbody>{eksVersions.map((version) => <tr key={version.version} className={version.version === currentVersion ? 'selected' : ''}>
+          <td><button type="button" onClick={() => setCurrentVersion(version.version)}>EKS {version.version}</button></td>
+          <td><StatusPill version={version}/></td>
+          <td>{version.releaseDate}</td>
+          <td>{version.standardSupportEnd}</td>
+          <td>{version.extendedSupportEnd}</td>
+          <td>{version.latestPlatform ?? 'Check source'}</td>
+          <td><Source label={version.sourceLabel} url={version.sourceUrl}/></td>
+          <td><a href={versionGuidePath(version.version)} onClick={(event) => { event.preventDefault(); navigate(versionGuidePath(version.version), setRoute); }}>Guide</a></td>
+        </tr>)}</tbody>
+      </table>
+    </div>
+  </section>;
+}
+
+function CostSection({
+  currentVersion,
+  clusterCount,
+  monthsDelayed,
+  setCurrentVersion,
+  setClusterCount,
+  setMonthsDelayed,
+}: {
+  currentVersion: string;
+  clusterCount: number;
+  monthsDelayed: number;
+  setCurrentVersion: (value: string) => void;
+  setClusterCount: (value: number) => void;
+  setMonthsDelayed: (value: number) => void;
+}) {
+  const { selected, cost } = costSummary(currentVersion, clusterCount, monthsDelayed);
+  const report = generateCostReport(currentVersion, clusterCount, monthsDelayed);
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Cost</span>
+        <h1>Extended support estimate</h1>
+      </div>
+      <p>Local estimate for EKS control-plane support-tier pricing only. Workload and infrastructure costs are intentionally excluded.</p>
+    </div>
+
+    <div className="tool-grid two">
+      <section className="product-panel">
+        <div className="form-grid">
+          <ProductField label="EKS version"><VersionSelect value={currentVersion} onChange={setCurrentVersion}/></ProductField>
+          <ProductField label="Clusters"><input type="number" min="1" value={clusterCount} onChange={(event) => setClusterCount(Math.max(1, Number(event.target.value) || 1))}/></ProductField>
+          <ProductField label={`Months delayed: ${monthsDelayed}`}><input type="range" min="1" max="24" value={monthsDelayed} onChange={(event) => setMonthsDelayed(Number(event.target.value))}/></ProductField>
+        </div>
+        <dl className="cost-ledger">
+          <div><dt>Standard monthly</dt><dd>{formatCurrency(cost.standardMonthly)}</dd></div>
+          <div><dt>Extended monthly</dt><dd>{formatCurrency(cost.extendedMonthly)}</dd></div>
+          <div><dt>Monthly delta</dt><dd>{formatCurrency(cost.extraMonthly)}</dd></div>
+          <div><dt>{monthsDelayed}-month delta</dt><dd>{formatCurrency(cost.extraTotal)}</dd></div>
+        </dl>
+        <p className="small-note">EKS {selected.version} standard support ends {selected.standardSupportEnd}. <Source label={eksPricing.sourceLabel} url={eksPricing.sourceUrl}/></p>
+      </section>
+
+      <section className="product-panel report-panel">
+        <div className="panel-title">
+          <h2>Copyable Cost Record</h2>
+          <CopyButton text={report} label="Copy report"/>
+        </div>
+        <textarea readOnly value={report}/>
+      </section>
+    </div>
+  </section>;
+}
+
+function PlannerSection({
+  currentVersion,
+  targetVersion,
+  clusterCount,
+  monthsDelayed,
+  nodeModel,
+  selectedAddons,
+  scannerFindings,
+  setCurrentVersion,
+  setTargetVersion,
+  setClusterCount,
+  setMonthsDelayed,
+  setNodeModel,
+  setSelectedAddons,
+}: {
+  currentVersion: string;
+  targetVersion: string;
+  clusterCount: number;
+  monthsDelayed: number;
+  nodeModel: NodeModel;
+  selectedAddons: Record<string, boolean>;
+  scannerFindings: ReturnType<typeof scanManifest>;
+  setCurrentVersion: (value: string) => void;
+  setTargetVersion: (value: string) => void;
+  setClusterCount: (value: number) => void;
+  setMonthsDelayed: (value: number) => void;
+  setNodeModel: (value: NodeModel) => void;
+  setSelectedAddons: (value: Record<string, boolean>) => void;
+}) {
+  const targetOptions = eksVersions.filter((version) => compareEksVersions(version.version, currentVersion) >= 0);
+  const effectiveTarget = compareEksVersions(targetVersion, currentVersion) < 0 ? currentVersion : targetVersion;
+  const selectedAddonIds = selectedAddonIdsFrom(selectedAddons);
+  const hops = generateHopSequence(currentVersion, effectiveTarget);
+  const { cost } = costSummary(currentVersion, clusterCount, monthsDelayed);
+  const report = generatePlannerMarkdown({
+    currentVersion,
+    targetVersion: effectiveTarget,
+    clusterCount,
+    monthsDelayed,
+    nodeModel,
+    selectedAddonIds,
+    scannerFindings,
+  });
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Planner</span>
+        <h1>Upgrade RFC builder</h1>
+      </div>
+      <p>Build a local, copyable plan with version hops, node model checks, add-on preflight, scanner output, and support-tier estimate.</p>
+    </div>
+
+    <div className="tool-grid planner-grid">
+      <section className="product-panel">
+        <div className="form-grid">
+          <ProductField label="Current version"><VersionSelect value={currentVersion} onChange={(value) => {
+            setCurrentVersion(value);
+            if (compareEksVersions(targetVersion, value) < 0) setTargetVersion(value);
+          }}/></ProductField>
+          <ProductField label="Target version"><VersionSelect value={effectiveTarget} versions={targetOptions} onChange={setTargetVersion}/></ProductField>
+          <ProductField label="Clusters"><input type="number" min="1" value={clusterCount} onChange={(event) => setClusterCount(Math.max(1, Number(event.target.value) || 1))}/></ProductField>
+          <ProductField label={`Months delayed: ${monthsDelayed}`}><input type="range" min="1" max="24" value={monthsDelayed} onChange={(event) => setMonthsDelayed(Number(event.target.value))}/></ProductField>
+        </div>
+
+        <div className="segmented">
+          {nodeModelIds.map((item) => <button type="button" key={item} className={nodeModel === item ? 'active' : ''} onClick={() => setNodeModel(item)}>{nodeModelLabels[item]}</button>)}
+        </div>
+
+        <div className="checklist-grid">
+          {addons.map((addon) => <label key={addon.id} className={selectedAddons[addon.id] ? 'checked' : ''}>
+            <input type="checkbox" checked={Boolean(selectedAddons[addon.id])} onChange={() => setSelectedAddons(toggleRecord(selectedAddons, addon.id))}/>
+            <span>{addon.name}</span>
+          </label>)}
+        </div>
+      </section>
+
+      <section className="product-panel">
+        <div className="panel-title"><h2>Hop Sequence</h2><span>{hops.length - 1} hop(s)</span></div>
+        <div className="hop-line">{hops.map((hop, index) => <div key={hop}>
+          <strong>{hop}</strong>
+          <span>{index === 0 ? 'current' : index === hops.length - 1 ? 'target' : 'intermediate'}</span>
+        </div>)}</div>
+        <div className="node-checks">
+          <h3>{nodeModelLabels[nodeModel]} checks</h3>
+          {nodeModelChecks[nodeModel].map((check) => <p key={check}>{check}</p>)}
+        </div>
+        <div className="cost-callout">
+          <span>Support-tier exposure model</span>
+          <strong>{formatCurrency(cost.extraTotal)}</strong>
+          <p>{formatCurrency(cost.extraMonthly)} monthly delta across {clusterCount} cluster(s).</p>
+        </div>
+      </section>
+
+      <section className="product-panel report-panel wide">
+        <div className="panel-title">
+          <h2>Copyable Jira/RFC Markdown</h2>
+          <CopyButton text={report} label="Copy RFC"/>
+        </div>
+        <textarea readOnly value={report}/>
+      </section>
+    </div>
+  </section>;
+}
+
+function ScannerSection({ manifest, setManifest, scannerFindings }: { manifest: string; setManifest: (value: string) => void; scannerFindings: ReturnType<typeof scanManifest> }) {
+  const scannerReport = scannerFindings.length
+    ? scannerFindings.map((finding) => `- ${finding.severity.toUpperCase()} line ${finding.line}: ${finding.kind} ${finding.apiVersion} removed in ${finding.removedIn}; use ${finding.replacement}. ${finding.migrationGuide}`).join('\n')
+    : 'No deprecated API matches detected in pasted manifest text.';
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Scanner</span>
+        <h1>Deprecated API scanner</h1>
+      </div>
+      <p>No upload. Text is scanned in this browser tab against local apiVersion/kind rules from the Kubernetes deprecation guide.</p>
+    </div>
+
+    <div className="tool-grid scanner-grid">
+      <section className="product-panel manifest-panel">
+        <div className="panel-title">
+          <h2>Pasted Manifest Text</h2>
+          <div className="button-row">
+            <button type="button" onClick={() => setManifest(scanExampleManifest())}>Load example</button>
+            <button type="button" onClick={() => setManifest('')}>Clear</button>
+          </div>
+        </div>
+        <textarea value={manifest} onChange={(event) => setManifest(event.target.value)} spellCheck={false}/>
+      </section>
+
+      <section className="product-panel findings-panel">
+        <div className="panel-title">
+          <h2>Findings</h2>
+          <CopyButton text={scannerReport} label="Copy findings"/>
+        </div>
+        {scannerFindings.length ? <div className="finding-list">
+          {scannerFindings.map((finding) => <article key={`${finding.apiVersion}-${finding.kind}-${finding.line}`} className={finding.severity}>
+            <div>
+              <span>{finding.severity}</span>
+              <strong>Line {finding.line}: {finding.kind}</strong>
+            </div>
+            <p>{finding.apiVersion} was removed in Kubernetes {finding.removedIn}. Replace with {finding.replacement}.</p>
+            <Source label={finding.sourceLabel} url={finding.migrationGuide}/>
+            <pre>{finding.excerpt}</pre>
+          </article>)}
+        </div> : <div className="empty-state">
+          <strong>No deprecated API matches detected</strong>
+          <p>This does not prove the manifests are valid. It only means the local text scan did not match the included rules.</p>
+        </div>}
+      </section>
+    </div>
+  </section>;
+}
+
+function GuidesSection({ guideVersion, setGuideVersion, setRoute }: { guideVersion: string; setGuideVersion: (value: string) => void; setRoute: (route: AppRoute) => void }) {
+  const guide = buildVersionGuide(guideVersion);
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Guides</span>
+        <h1>EKS {guide.version.version} upgrade guide</h1>
+      </div>
+      <p>Source-linked local guide content for lifecycle dates, cost exposure, version hops, API checks, add-ons, and validation.</p>
+    </div>
+
+    <div className="tool-grid guide-grid">
+      <nav className="guide-index" aria-label="Version guides">
+        {eksVersions.map((version) => <a
+          key={version.version}
+          className={version.version === guide.version.version ? 'active' : ''}
+          href={versionGuidePath(version.version)}
+          onClick={(event) => {
+            event.preventDefault();
+            setGuideVersion(version.version);
+            navigate(versionGuidePath(version.version), setRoute);
+          }}
+        >
+          <strong>EKS {version.version}</strong>
+          <span>{statusLabel(getSupportStatus(version))}</span>
+        </a>)}
+      </nav>
+
+      <article className="product-panel guide-detail">
+        <div className="panel-title">
+          <h2>Lifecycle</h2>
+          <Source label={guide.version.sourceLabel} url={guide.version.sourceUrl}/>
+        </div>
+        <dl className="guide-facts">
+          <div><dt>Release</dt><dd>{guide.version.releaseDate}</dd></div>
+          <div><dt>Standard support ends</dt><dd>{guide.version.standardSupportEnd}</dd></div>
+          <div><dt>Extended support ends</dt><dd>{guide.version.extendedSupportEnd}</dd></div>
+          <div><dt>Suggested target</dt><dd>EKS {guide.targetVersion.version}</dd></div>
+        </dl>
+
+        <section>
+          <h3>Cost Risk</h3>
+          <p>{guide.costRisk}</p>
+        </section>
+        <section>
+          <h3>Upgrade Hops</h3>
+          <div className="hop-line compact">{guide.hops.map((hop) => <div key={hop}><strong>{hop}</strong></div>)}</div>
+        </section>
+        <section>
+          <h3>Deprecated API Checks</h3>
+          <div className="dense-list">{guide.deprecatedApiChecks.slice(0, 7).map((rule) => <p key={`${rule.apiVersion}-${rule.kind}`}>{rule.kind} {rule.apiVersion} removed in {rule.removedIn}; use {rule.replacement}. <Source label={rule.sourceLabel} url={rule.migrationGuide}/></p>)}</div>
+        </section>
+        <section>
+          <h3>Managed Add-on Checks</h3>
+          <div className="dense-list">{guide.managedAddonChecks.map((addon) => <p key={addon.id}>{addon.name}: {addon.whyItMatters} <Source label={addon.sourceLabel} url={addon.sourceUrl}/></p>)}</div>
+        </section>
+        <section>
+          <h3>Post-upgrade Validation</h3>
+          <ul>{guide.postUpgradeValidation.map((item) => <li key={item}>{item}</li>)}</ul>
+        </section>
+      </article>
+
+      <section className="product-panel report-panel wide">
+        <div className="panel-title">
+          <h2>Copyable Markdown Guide</h2>
+          <CopyButton text={guide.markdown} label="Copy guide"/>
+        </div>
+        <textarea readOnly value={guide.markdown}/>
+      </section>
+    </div>
+  </section>;
+}
+
+function AddonsSection({ activeAddonId, setActiveAddonId, setRoute }: { activeAddonId: string; setActiveAddonId: (value: string) => void; setRoute: (route: AppRoute) => void }) {
+  const activeAddon = findAddonBySlug(activeAddonId) ?? addons[0];
+  const checklist = addonValidationChecklist(activeAddon);
+  const detailMarkdown = `# ${activeAddon.name} EKS compatibility check
+
+Why it matters: ${activeAddon.whyItMatters}
+Type: ${activeAddon.type}
+Source: ${activeAddon.sourceUrl}
+
+## Checks
+${activeAddon.checks.map((check) => `- \`${check}\``).join('\n')}
+
+## Suggested validation
+${checklist.map((item) => `- ${item}`).join('\n')}
+
+Limitations: Local checklist only; verify against source docs and live cluster state.`;
+
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Addons</span>
+        <h1>Add-on compatibility checks</h1>
+      </div>
+      <p>Checklists for managed and platform add-ons that commonly affect EKS upgrade readiness. These are verification prompts, not compatibility guarantees.</p>
+    </div>
+
+    <div className="tool-grid addon-grid">
+      <nav className="addon-index" aria-label="Addon detail routes">
+        {addons.map((addon) => <a
+          key={addon.id}
+          className={activeAddon.id === addon.id ? 'active' : ''}
+          href={addonCompatibilityPath(addon)}
+          onClick={(event) => {
+            event.preventDefault();
+            setActiveAddonId(addon.id);
+            navigate(addonCompatibilityPath(addon), setRoute);
+          }}
+        >
+          <strong>{addon.name}</strong>
+          <span>{addon.type}</span>
+        </a>)}
+      </nav>
+
+      <article className="product-panel addon-detail">
+        <div className="panel-title">
+          <h2>{activeAddon.name}</h2>
+          <Source label={activeAddon.sourceLabel} url={activeAddon.sourceUrl}/>
+        </div>
+        <p className="why">{activeAddon.whyItMatters}</p>
+        <h3>Checks</h3>
+        <div className="command-list">{activeAddon.checks.map((check) => <code key={check}>{check}</code>)}</div>
+        <h3>Suggested Upgrade Validation</h3>
+        <ul>{checklist.map((item) => <li key={item}>{item}</li>)}</ul>
+        <CopyButton text={detailMarkdown} label="Copy add-on checklist"/>
+      </article>
+    </div>
+  </section>;
+}
+
+function EvidenceSection({
+  currentVersion,
+  targetVersion,
+  clusterCount,
+  monthsDelayed,
+  nodeModel,
+  selectedAddonIds,
+  scannerFindings,
+}: {
+  currentVersion: string;
+  targetVersion: string;
+  clusterCount: number;
+  monthsDelayed: number;
+  nodeModel: NodeModel;
+  selectedAddonIds: string[];
+  scannerFindings: ReturnType<typeof scanManifest>;
+}) {
+  const report = generateEvidenceReport({
+    currentVersion,
+    targetVersion,
+    clusterCount,
+    monthsDelayed,
+    nodeModel,
+    selectedAddonIds,
+    scannerFindings,
+    evidenceVersion: `${dataFreshness.checkedAt}-${scannerFindings.length}`,
+  });
+  return <section className="product-section">
+    <div className="section-head">
+      <div>
+        <span className="eyebrow">Evidence</span>
+        <h1>Evidence pack</h1>
+      </div>
+      <p>Combines selected version, cost estimate, planner state, scanner findings, add-on checks, citations, and explicit limitations into one copyable report.</p>
+    </div>
+
+    <div className="tool-grid two">
+      <section className="product-panel">
+        <div className="evidence-summary">
+          <div><span>Current</span><strong>EKS {currentVersion}</strong></div>
+          <div><span>Target</span><strong>EKS {targetVersion}</strong></div>
+          <div><span>Clusters</span><strong>{clusterCount}</strong></div>
+          <div><span>Scanner findings</span><strong>{scannerFindings.length}</strong></div>
+          <div><span>Add-on groups</span><strong>{selectedAddonIds.length}</strong></div>
+          <div><span>Node model</span><strong>{nodeModelLabels[nodeModel]}</strong></div>
+        </div>
+        <div className="limitations">
+          <h2>Limitations</h2>
+          <p>Browser-only static report. It does not call AWS APIs, upload manifests, verify IAM, inspect workloads, or confirm live add-on versions.</p>
+          <p>{eksPricing.note}</p>
+        </div>
+      </section>
+
+      <section className="product-panel report-panel">
+        <div className="panel-title">
+          <h2>Copyable Evidence Report</h2>
+          <CopyButton text={report} label="Copy evidence"/>
+        </div>
+        <textarea readOnly value={report}/>
+      </section>
+    </div>
+  </section>;
+}
+
+function ProductShell({ route, setRoute }: { route: Extract<AppRoute, { kind: 'product' }>; setRoute: (route: AppRoute) => void }) {
+  const routeGuideVersion = route.detail?.type === 'version-guide' ? route.detail.version : '1.31';
+  const routeAddonId = route.detail?.type === 'addon' ? route.detail.addonId : 'vpc-cni';
+  const [currentVersion, setCurrentVersion] = useState(routeGuideVersion);
+  const [targetVersion, setTargetVersion] = useState(eksVersions[0].version);
+  const [guideVersion, setGuideVersion] = useState(routeGuideVersion);
+  const [activeAddonId, setActiveAddonId] = useState(routeAddonId);
+  const [clusterCount, setClusterCount] = useState(12);
+  const [monthsDelayed, setMonthsDelayed] = useState(4);
+  const [nodeModel, setNodeModel] = useState<NodeModel>('managed-node-groups');
+  const [manifest, setManifest] = useState(defaultManifest);
+  const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>(defaultSelectedAddons);
+
+  const scannerFindings = useMemo(() => scanManifest(manifest), [manifest]);
+  const selectedAddonIds = selectedAddonIdsFrom(selectedAddons);
+  const selectedVersion = eksVersions.find((version) => version.version === currentVersion) ?? eksVersions[0];
+  const effectiveTarget = compareEksVersions(targetVersion, currentVersion) < 0 ? currentVersion : targetVersion;
+  const displayedGuideVersion = route.detail?.type === 'version-guide' ? route.detail.version : guideVersion;
+  const displayedAddonId = route.detail?.type === 'addon' ? route.detail.addonId : activeAddonId;
+
+  return <main className="product-shell">
+    <aside className="product-rail">
+      <a className="product-brand" href="/app" onClick={(event) => { event.preventDefault(); navigate('/app', setRoute); }}>
+        <span/>
+        <strong>EKS Upgrade Planner</strong>
+      </a>
+      <ProductTabs active={route.tab} guideVersion={displayedGuideVersion} setRoute={setRoute}/>
+      <button className="design-link" type="button" onClick={() => navigate('/1', setRoute)}>Design explorations</button>
+    </aside>
+
+    <div className="product-main">
+      <header className="product-topbar">
+        <div>
+          <span className="eyebrow">Local SPA · No AWS Account Access</span>
+          <strong>EKS {currentVersion} → EKS {effectiveTarget}</strong>
+        </div>
+        <div className="topbar-status">
+          <StatusPill version={selectedVersion}/>
+          <span>{selectedVersion.standardSupportEnd} standard end</span>
+        </div>
+      </header>
+
+      {route.tab === 'overview' && <OverviewSection currentVersion={currentVersion} targetVersion={effectiveTarget} clusterCount={clusterCount} monthsDelayed={monthsDelayed} scannerFindings={scannerFindings} selectedAddonIds={selectedAddonIds} setCurrentVersion={setCurrentVersion} setRoute={setRoute}/>}
+      {route.tab === 'versions' && <VersionsSection currentVersion={currentVersion} setCurrentVersion={setCurrentVersion} setRoute={setRoute}/>}
+      {route.tab === 'cost' && <CostSection currentVersion={currentVersion} clusterCount={clusterCount} monthsDelayed={monthsDelayed} setCurrentVersion={setCurrentVersion} setClusterCount={setClusterCount} setMonthsDelayed={setMonthsDelayed}/>}
+      {route.tab === 'planner' && <PlannerSection currentVersion={currentVersion} targetVersion={effectiveTarget} clusterCount={clusterCount} monthsDelayed={monthsDelayed} nodeModel={nodeModel} selectedAddons={selectedAddons} scannerFindings={scannerFindings} setCurrentVersion={setCurrentVersion} setTargetVersion={setTargetVersion} setClusterCount={setClusterCount} setMonthsDelayed={setMonthsDelayed} setNodeModel={setNodeModel} setSelectedAddons={setSelectedAddons}/>}
+      {route.tab === 'scanner' && <ScannerSection manifest={manifest} setManifest={setManifest} scannerFindings={scannerFindings}/>}
+      {route.tab === 'guides' && <GuidesSection guideVersion={displayedGuideVersion} setGuideVersion={setGuideVersion} setRoute={setRoute}/>}
+      {route.tab === 'addons' && <AddonsSection activeAddonId={displayedAddonId} setActiveAddonId={setActiveAddonId} setRoute={setRoute}/>}
+      {route.tab === 'evidence' && <EvidenceSection currentVersion={currentVersion} targetVersion={effectiveTarget} clusterCount={clusterCount} monthsDelayed={monthsDelayed} nodeModel={nodeModel} selectedAddonIds={selectedAddonIds} scannerFindings={scannerFindings}/>}
+    </div>
+
+    <ProductSourcesPanel/>
+  </main>;
+}
+
+function CurrentDesign({ route }: { route: DesignRoute }) {
   if (route === '/2') return <DesignTwo/>;
   if (route === '/3') return <DesignThree/>;
   if (route === '/4') return <DesignFour/>;
@@ -642,16 +1297,19 @@ function CurrentDesign({ route }: { route: Route }) {
 }
 
 function App() {
-  const [route, setRoute] = useState<Route>(routeFromLocation());
+  const [route, setRoute] = useState<AppRoute>(routeFromLocation());
   useEffect(() => {
     const onPop = () => setRoute(routeFromLocation());
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
-  return <>
-    <DesignNav active={route} setRoute={setRoute}/>
-    <CurrentDesign route={route}/>
-  </>;
+  if (route.kind === 'design') {
+    return <>
+      <DesignNav active={route.route} setRoute={setRoute}/>
+      <CurrentDesign route={route.route}/>
+    </>;
+  }
+  return <ProductShell route={route} setRoute={setRoute}/>;
 }
 
 export default App;
