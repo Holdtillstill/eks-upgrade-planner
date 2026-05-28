@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { addons } from './data/addons';
 import { dataFreshness, eksVersions, type EksVersion } from './data/versions';
@@ -15,157 +15,228 @@ import {
   statusLabel,
 } from './lib/planner';
 
-type View = 'overview' | 'versions' | 'calculator' | 'planner' | 'scanner';
-const nav: { id: View; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'versions', label: 'EKS Versions' },
-  { id: 'calculator', label: 'Cost Calculator' },
-  { id: 'planner', label: 'Upgrade Planner' },
-  { id: 'scanner', label: 'Browser Scanner' },
+type Route = '/1' | '/2' | '/3' | '/4' | '/5';
+
+const routes: { path: Route; name: string; idea: string }[] = [
+  { path: '/1', name: 'Mission Control', idea: 'orbital command center' },
+  { path: '/2', name: 'Executive Memo', idea: 'boardroom cost narrative' },
+  { path: '/3', name: 'Blueprint Lab', idea: 'technical upgrade drafting table' },
+  { path: '/4', name: 'Signal OS', idea: 'dense product workspace' },
+  { path: '/5', name: 'Risk Observatory', idea: 'radar + timeline system' },
 ];
 
-const exampleManifest = `apiVersion: networking.k8s.io/v1beta1
+const defaultManifest = `apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: legacy-web
-  namespace: production
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: privileged
 ---
-apiVersion: batch/v1beta1
-kind: CronJob
+apiVersion: flowcontrol.apiserver.k8s.io/v1beta3
+kind: FlowSchema
 metadata:
-  name: nightly-report`;
+  name: noisy-tenants`;
 
-function Citation({ label, url }: { label: string; url: string }) {
-  return <a className="citation" href={url} target="_blank" rel="noreferrer">↗ {label}</a>;
+function routeFromLocation(): Route {
+  const path = window.location.pathname as Route;
+  return routes.some((r) => r.path === path) ? path : '/1';
 }
 
-function StatusBadge({ version }: { version: EksVersion }) {
-  const status = getSupportStatus(version);
-  return <span className={`status ${status}`}>{statusLabel(status)}</span>;
+function navigate(path: Route, setRoute: (path: Route) => void) {
+  window.history.pushState({}, '', path);
+  setRoute(path);
 }
 
-function CopyButton({ text, label = 'Copy markdown' }: { text: string; label?: string }) {
+function Source({ label, url }: { label: string; url: string }) {
+  return <a className="source" href={url} target="_blank" rel="noreferrer">{label}</a>;
+}
+
+function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   async function copy() {
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    window.setTimeout(() => setCopied(false), 1600);
   }
-  return <button className="secondary" onClick={copy}>{copied ? 'Copied' : label}</button>;
+  return <button className="copy" type="button" onClick={copy}>{copied ? 'Copied' : label}</button>;
 }
 
-function Overview({ setView }: { setView: (view: View) => void }) {
-  const extended = eksVersions.filter((v) => getSupportStatus(v).includes('extended')).length;
-  const nextEnd = eksVersions
-    .filter((v) => daysUntil(v.standardSupportEnd) > 0)
-    .sort((a, b) => daysUntil(a.standardSupportEnd) - daysUntil(b.standardSupportEnd))[0];
-  return <>
-    <section className="hero-card">
-      <div>
-        <p className="eyebrow">EKS Upgrade Risk + Extended Support Cost Planner</p>
-        <h1>Know when EKS starts costing more, what to upgrade, and what to check before the change window.</h1>
-        <p className="hero-copy">A 100% client-side planning workspace for platform teams. No AWS credentials, no uploads, no backend. Data is static, source-linked, and intentionally conservative.</p>
-        <div className="hero-actions">
-          <button onClick={() => setView('calculator')}>Calculate cost exposure</button>
-          <button className="secondary" onClick={() => setView('planner')}>Generate upgrade ticket</button>
-        </div>
-      </div>
-      <div className="hero-metrics">
-        <div><strong>{eksVersions[0].version}</strong><span>Newest tracked EKS</span></div>
-        <div><strong>{extended}</strong><span>Versions in extended billing</span></div>
-        <div><strong>{nextEnd?.version}</strong><span>Next standard support deadline</span></div>
-      </div>
-    </section>
-    <section className="grid three">
-      <div className="card"><h3>Money question first</h3><p>Model the 6× control-plane support-tier jump from {formatHourlyCurrency(eksPricing.standardPerClusterHour)}/hr to {formatHourlyCurrency(eksPricing.extendedPerClusterHour)}/hr per cluster.</p></div>
-      <div className="card"><h3>Upgrade path, not vibes</h3><p>Generate one-minor-version hops, preflight commands, managed addon checks, and post-upgrade validation steps.</p></div>
-      <div className="card"><h3>Local scanner</h3><p>Paste YAML locally to detect known removed Kubernetes APIs. Results cite official migration guides.</p></div>
-    </section>
-    <FreshnessBanner />
-  </>;
+function DesignNav({ active, setRoute }: { active: Route; setRoute: (path: Route) => void }) {
+  return <nav className="design-nav" aria-label="Design variants">
+    <a className="brand" onClick={() => navigate('/1', setRoute)}><span/>EKS Upgrade Planner</a>
+    <div>{routes.map((r) => <button key={r.path} className={active === r.path ? 'active' : ''} onClick={() => navigate(r.path, setRoute)}>{r.path}<em>{r.name}</em></button>)}</div>
+  </nav>;
 }
 
-function FreshnessBanner() {
-  return <div className="banner"><strong>Data freshness:</strong> checked {dataFreshness.checkedAt}. {dataFreshness.note} <Citation label={dataFreshness.sourceLabel} url={dataFreshness.sourceUrl} /></div>;
+function statusTone(version: EksVersion) {
+  const status = getSupportStatus(version);
+  if (status === 'standard') return 'ok';
+  if (status === 'standard-ending-soon') return 'warn';
+  return 'bad';
 }
 
-function VersionsView({ setView }: { setView: (view: View) => void }) {
-  return <section className="card wide">
-    <div className="section-title"><div><p className="eyebrow">Lifecycle tracker</p><h2>EKS versions and support deadlines</h2></div><button onClick={() => setView('calculator')}>Estimate delay cost</button></div>
-    <FreshnessBanner />
-    <div className="table-wrap"><table><thead><tr><th>Version</th><th>Status</th><th>Release</th><th>Standard end</th><th>Extended end</th><th>Deadline signal</th><th>Source</th></tr></thead><tbody>
-      {eksVersions.map((v) => {
-        const standardDays = daysUntil(v.standardSupportEnd);
-        const extendedDays = daysUntil(v.extendedSupportEnd);
-        const signal = standardDays >= 0 ? `${standardDays} days to extended billing` : `${extendedDays} days to extended-support end`;
-        return <tr key={v.version}><td className="version-cell">EKS {v.version}<span>{v.latestPlatform}</span></td><td><StatusBadge version={v} /></td><td>{v.releaseDate}</td><td>{v.standardSupportEnd}</td><td>{v.extendedSupportEnd}</td><td>{signal}</td><td><Citation label="source" url={v.sourceUrl} /></td></tr>;
-      })}
-    </tbody></table></div>
-  </section>;
+function StatusPill({ version }: { version: EksVersion }) {
+  return <span className={`pill ${statusTone(version)}`}>{statusLabel(getSupportStatus(version))}</span>;
 }
 
-function CostCalculator() {
+function costSummary(version: string, clusters: number, months: number) {
+  const selected = eksVersions.find((v) => v.version === version) ?? eksVersions[0];
+  const cost = calculateEksSupportCost(clusters, months);
+  const alreadyExtended = getSupportStatus(selected).includes('extended') || getSupportStatus(selected) === 'expired';
+  const label = alreadyExtended ? 'current extra exposure' : 'possible exposure if delayed past standard support';
+  const text = `EKS ${version} · ${clusters} cluster(s) · ${months} month(s)\nStandard support ends: ${selected.standardSupportEnd}\nExtended support ends: ${selected.extendedSupportEnd}\nStandard monthly: ${formatCurrency(cost.standardMonthly)}\nExtended monthly: ${formatCurrency(cost.extendedMonthly)}\nExtra monthly: ${formatCurrency(cost.extraMonthly)}\nExtra ${months}-month exposure: ${formatCurrency(cost.extraTotal)}\nSource: ${eksPricing.sourceUrl}`;
+  return { selected, cost, label, text };
+}
+
+function VersionMiniTable({ limit = 6 }: { limit?: number }) {
+  return <div className="mini-table">{eksVersions.slice(0, limit).map((v) => <div key={v.version}>
+    <strong>{v.version}</strong><span>{v.standardSupportEnd}</span><StatusPill version={v}/><small>{daysUntil(v.standardSupportEnd) >= 0 ? `${daysUntil(v.standardSupportEnd)}d to billing` : `${daysUntil(v.extendedSupportEnd)}d to EOL`}</small>
+  </div>)}</div>;
+}
+
+function CostDial({ version, clusters, months }: { version: string; clusters: number; months: number }) {
+  const { cost, label } = costSummary(version, clusters, months);
+  return <div className="cost-dial">
+    <p>{label}</p>
+    <strong>{formatCurrency(cost.extraTotal)}</strong>
+    <div className="dial-bar"><i style={{ width: `${Math.min(100, Math.max(8, cost.extraMonthly / 25))}%` }} /></div>
+    <span>{formatCurrency(cost.extraMonthly)} / month delta</span>
+  </div>;
+}
+
+function Controls({ version, setVersion, clusters, setClusters, months, setMonths }: {
+  version: string; setVersion: (v: string) => void; clusters: number; setClusters: (n: number) => void; months: number; setMonths: (n: number) => void;
+}) {
+  return <div className="controls">
+    <label>Version<select value={version} onChange={(e) => setVersion(e.target.value)}>{eksVersions.map((v) => <option key={v.version}>{v.version}</option>)}</select></label>
+    <label>Clusters<input type="number" min="1" value={clusters} onChange={(e) => setClusters(Math.max(1, Number(e.target.value) || 1))}/></label>
+    <label>Delay <b>{months}mo</b><input type="range" min="1" max="18" value={months} onChange={(e) => setMonths(Number(e.target.value))}/></label>
+  </div>;
+}
+
+function DesignOne() {
   const [version, setVersion] = useState('1.31');
-  const [clusters, setClusters] = useState(5);
-  const [months, setMonths] = useState(6);
-  const selected = eksVersions.find((v) => v.version === version)!;
-  const cost = calculateEksSupportCost(Math.max(1, clusters || 1), months);
-  const status = getSupportStatus(selected);
-  const alreadyExtended = status === 'extended' || status === 'extended-ending-soon' || status === 'expired';
-  const exposureLabel = alreadyExtended ? 'current extra exposure' : 'potential exposure if delayed into extended support';
-  const summary = `⚠️ EKS Extended Support Cost Alert\n\nWe run ${Math.max(1, clusters || 1)} cluster(s) on EKS ${version}.\n- Support status: ${statusLabel(status)}\n- Standard support ended/ends: ${selected.standardSupportEnd}\n- Extended support ends: ${selected.extendedSupportEnd}\n- Standard monthly control-plane cost: ${formatCurrency(cost.standardMonthly)}\n- Extended monthly control-plane cost: ${formatCurrency(cost.extendedMonthly)}\n- Extra monthly exposure: ${formatCurrency(cost.extraMonthly)}\n- Extra exposure over ${months} month(s): ${formatCurrency(cost.extraTotal)}\n\nSource: ${eksPricing.sourceUrl}\nNote: ${alreadyExtended ? 'This version is already in or past extended support.' : 'This models the cost if the cluster remains on this version after standard support ends.'} Control-plane support tier pricing only; worker nodes and workload costs excluded.`;
-  return <section className="grid two">
-    <div className="card"><p className="eyebrow">Cost exposure calculator</p><h2>How expensive is waiting?</h2><div className="form-grid">
-      <label>EKS version<select value={version} onChange={(e) => setVersion(e.target.value)}>{eksVersions.map(v => <option key={v.version}>{v.version}</option>)}</select></label>
-      <label>Cluster count<input type="number" min="1" value={clusters} onChange={(e) => setClusters(Math.max(1, Number(e.target.value) || 1))}/></label>
-      <label>Months delayed<input type="range" min="1" max="18" value={months} onChange={(e) => setMonths(Number(e.target.value))}/><span className="range-label">{months} month(s)</span></label>
-    </div><Citation label={eksPricing.sourceLabel} url={eksPricing.sourceUrl} /></div>
-    <div className="card result-card"><p className="eyebrow">Projected delta</p><h2>{formatCurrency(cost.extraTotal)}</h2><p>{exposureLabel} over {months} month(s).</p><div className="bars"><div><span>Standard monthly</span><b>{formatCurrency(cost.standardMonthly)}</b><i style={{width:'18%'}} /></div><div><span>Extended monthly</span><b>{formatCurrency(cost.extendedMonthly)}</b><i className="danger" style={{width:'100%'}} /></div></div><pre>{summary}</pre><CopyButton text={summary}/></div>
-  </section>;
+  const [clusters, setClusters] = useState(12);
+  const [months, setMonths] = useState(4);
+  const { selected, text } = costSummary(version, clusters, months);
+  const arcs = eksVersions.slice(2, 7);
+  return <main className="page d1">
+    <section className="mission-grid">
+      <div className="mission-copy">
+        <p className="kicker">/1 ORBITAL COMMAND CENTER</p>
+        <h1>Track EKS versions like objects entering controlled re-entry.</h1>
+        <p className="lead">A high-signal cockpit for the moment platform teams need to brief leadership: which clusters are entering extended support, how much it costs, and what upgrade path clears the burn.</p>
+        <Controls version={version} setVersion={setVersion} clusters={clusters} setClusters={setClusters} months={months} setMonths={setMonths}/>
+      </div>
+      <div className="orbit-panel" aria-label="EKS lifecycle orbit visualization">
+        {arcs.map((v, i) => <span key={v.version} className={`orbit o${i} ${statusTone(v)}`}><b>{v.version}</b></span>)}
+        <div className="core"><span>EKS {selected.version}</span><strong>{daysUntil(selected.standardSupportEnd) < 0 ? 'BILLING' : `${daysUntil(selected.standardSupportEnd)}D`}</strong><em>standard support</em></div>
+      </div>
+      <div className="mission-card"><CostDial version={version} clusters={clusters} months={months}/><CopyButton text={text} label="Copy flight note"/></div>
+      <div className="mission-card timeline"><h3>Upgrade burn sequence</h3>{generateHopSequence('1.30', '1.33').map((h, i) => <p key={h}><span>T+{i}</span> Control plane {h}</p>)}</div>
+    </section>
+  </main>;
 }
 
-function UpgradePlanner() {
+function DesignTwo() {
+  const [version, setVersion] = useState('1.31');
+  const [clusters, setClusters] = useState(8);
+  const [months, setMonths] = useState(6);
+  const { selected, cost, text } = costSummary(version, clusters, months);
+  return <main className="page d2">
+    <article className="memo">
+      <aside><p>STRICTLY PRACTICAL</p><h2>EKS Extended Support Memo</h2><span>Prepared for platform leads, managers, and finance reviewers.</span><Source label="AWS pricing" url={eksPricing.sourceUrl}/></aside>
+      <section>
+        <div className="memo-top"><p>Recommendation</p><time>{dataFreshness.checkedAt}</time></div>
+        <h1>Move EKS {version} before {selected.standardSupportEnd}, or budget {formatCurrency(cost.extraTotal)} in avoidable support-tier delta.</h1>
+        <p className="lead serif">This design treats the page as an executive artifact: less dashboard, more boardroom-ready decision memo. The calculator’s output is meant to paste into Jira, Slack, or an upgrade RFC.</p>
+        <Controls version={version} setVersion={setVersion} clusters={clusters} setClusters={setClusters} months={months} setMonths={setMonths}/>
+        <div className="memo-numbers"><div><span>Standard monthly</span><b>{formatCurrency(cost.standardMonthly)}</b></div><div><span>Extended monthly</span><b>{formatCurrency(cost.extendedMonthly)}</b></div><div><span>Delta</span><b>{formatCurrency(cost.extraMonthly)}</b></div></div>
+        <blockquote>“The cost is not the upgrade. The cost is waiting until the upgrade has an invoice.”</blockquote>
+        <CopyButton text={text} label="Copy memo summary"/>
+      </section>
+    </article>
+  </main>;
+}
+
+function DesignThree() {
   const [current, setCurrent] = useState('1.30');
   const [target, setTarget] = useState('1.33');
-  const [selectedAddons, setSelectedAddons] = useState<string[]>(['vpc-cni', 'coredns', 'kube-proxy', 'aws-load-balancer-controller', 'karpenter']);
   const targetOptions = eksVersions.filter((v) => compareEksVersions(v.version, current) >= 0);
   const effectiveTarget = compareEksVersions(target, current) < 0 ? current : target;
   const hops = generateHopSequence(current, effectiveTarget);
-  const chosen = addons.filter((a) => selectedAddons.includes(a.id));
-  const ticket = `# EKS ${current} → ${effectiveTarget} Upgrade Plan\n\n## Hop sequence\n${hops.map((h, i) => i === 0 ? `- Current: ${h}` : `- Upgrade to ${h}`).join('\n')}\n\n## Preflight\n- aws eks describe-cluster --name $CLUSTER\n- kubectl get nodes -o wide\n- kubectl get apiservices\n- kubectl get events -A --sort-by=.lastTimestamp | tail -100\n\n## Addons to verify\n${chosen.map(a => [`- ${a.name}: ${a.sourceUrl}`, ...a.checks.map(check => `  - ${check}`)].join('\n')).join('\n')}\n\n## Post-upgrade validation\n- kubectl get nodes\n- kubectl -n kube-system get pods\n- kubectl get --raw /readyz?verbose\n- Review Argo CD/Helm sync status and workload SLO dashboards`;
-  return <section className="grid two planner">
-    <div className="card"><p className="eyebrow">Upgrade planner</p><h2>Generate a source-linked upgrade ticket</h2><div className="form-grid">
-      <label>Current version<select value={current} onChange={(e) => {
-        const nextCurrent = e.target.value;
-        setCurrent(nextCurrent);
-        if (compareEksVersions(target, nextCurrent) < 0) setTarget(nextCurrent);
-      }}>{eksVersions.map(v => <option key={v.version}>{v.version}</option>)}</select></label>
-      <label>Target version<select value={effectiveTarget} onChange={(e) => setTarget(e.target.value)}>{targetOptions.map(v => <option key={v.version}>{v.version}</option>)}</select></label>
-    </div><div className="hop-line">{hops.map((h, i) => <span key={h} className={i === 0 ? 'muted-hop' : ''}>{h}</span>)}</div><h3>Addon checklist</h3><div className="addon-list">{addons.map(addon => <label key={addon.id} className="check-card"><input type="checkbox" checked={selectedAddons.includes(addon.id)} onChange={(e) => setSelectedAddons(e.target.checked ? [...selectedAddons, addon.id] : selectedAddons.filter(id => id !== addon.id))}/><span><b>{addon.name}</b><small>{addon.type} · {addon.whyItMatters}</small></span></label>)}</div></div>
-    <div className="card"><p className="eyebrow">Runbook preview</p><h2>Preflight → control plane → addons → validation</h2><div className="command-block"><code>aws eks update-cluster-version --name $CLUSTER --kubernetes-version {effectiveTarget}</code><code>aws eks update-addon --cluster-name $CLUSTER --addon-name vpc-cni</code><code>kubectl get --raw /readyz?verbose</code></div><h3>Selected source checks</h3>{chosen.slice(0,5).map(a => <p className="source-row" key={a.id}><b>{a.name}</b><Citation label={a.sourceLabel} url={a.sourceUrl}/></p>)}<pre>{ticket}</pre><CopyButton text={ticket} label="Copy upgrade ticket" /></div>
-  </section>;
+  const ticket = `EKS ${current} -> ${effectiveTarget}\n${hops.map((h, i) => `${i === 0 ? 'CURRENT' : 'UPGRADE'} ${h}`).join('\n')}\n\n${addons.slice(0, 6).flatMap((a) => a.checks).join('\n')}`;
+  return <main className="page d3">
+    <section className="blueprint-shell">
+      <header><p>/3 BLUEPRINT LAB</p><h1>Draft the upgrade as an engineering drawing.</h1><span>Designed for operators who want dense structure, exact commands, and visible dependencies.</span></header>
+      <div className="drafting-table">
+        <div className="selectors"><label>From<select value={current} onChange={(e) => { setCurrent(e.target.value); if (compareEksVersions(target, e.target.value) < 0) setTarget(e.target.value); }}>{eksVersions.map((v) => <option key={v.version}>{v.version}</option>)}</select></label><label>To<select value={effectiveTarget} onChange={(e) => setTarget(e.target.value)}>{targetOptions.map((v) => <option key={v.version}>{v.version}</option>)}</select></label></div>
+        <div className="schematic">{hops.map((h, i) => <div key={h} className="node"><b>{h}</b><span>{i === 0 ? 'baseline' : 'control plane hop'}</span></div>)}</div>
+        <div className="command-matrix">{addons.slice(0, 8).map((a) => <section key={a.id}><h3>{a.name}</h3>{a.checks.map((c) => <code key={c}>{c}</code>)}<Source label="docs" url={a.sourceUrl}/></section>)}</div>
+      </div>
+      <CopyButton text={ticket} label="Copy drawing notes"/>
+    </section>
+  </main>;
 }
 
-function BrowserScanner() {
-  const [input, setInput] = useState(exampleManifest);
-  const findings = useMemo(() => scanDeprecatedApis(input), [input]);
-  return <section className="grid two">
-    <div className="card"><p className="eyebrow">Zero-trust local scanner</p><h2>Paste manifests. Nothing leaves your browser.</h2><p className="muted">Regex-based MVP scanner for known apiVersion/kind removals. Use Pluto/kubent in CI for authoritative cluster scans.</p><textarea value={input} onChange={(e) => setInput(e.target.value)} /><div className="hero-actions"><button className="secondary" onClick={() => setInput(exampleManifest)}>Load example</button><button className="secondary" onClick={() => setInput('')}>Clear</button></div></div>
-    <div className="card"><p className="eyebrow">Findings</p><h2>{findings.length ? `${findings.length} deprecated API finding(s)` : 'No known deprecated APIs found'}</h2>{findings.map((f, idx) => <div className="finding" key={`${f.apiVersion}-${f.kind}-${idx}`}><span className={`status ${f.severity === 'critical' ? 'extended-ending-soon' : 'standard-ending-soon'}`}>{f.severity}</span><h3>{f.kind} {f.apiVersion}</h3><p>Removed in Kubernetes {f.removedIn}. Replace with <b>{f.replacement}</b>.</p><small>Line {f.line}</small><pre>{f.excerpt}</pre><Citation label={f.sourceLabel} url={f.migrationGuide}/></div>)}</div>
-  </section>;
+function DesignFour() {
+  const [query, setQuery] = useState(defaultManifest);
+  const [version, setVersion] = useState('1.31');
+  const findings = useMemo(() => scanDeprecatedApis(query), [query]);
+  const selected = eksVersions.find((v) => v.version === version) ?? eksVersions[0];
+  return <main className="page d4">
+    <section className="os-frame">
+      <aside className="os-rail"><strong>Signal OS</strong><button>⌘K</button><button>API</button><button>EOL</button><button>Cost</button></aside>
+      <div className="os-main">
+        <div className="command-palette"><span>Ask</span><input readOnly value={`Plan upgrade to EKS ${version} and scan pasted manifests`}/><select value={version} onChange={(e) => setVersion(e.target.value)}>{eksVersions.map((v) => <option key={v.version}>{v.version}</option>)}</select></div>
+        <div className="os-grid">
+          <section className="window big"><p className="kicker">/4 PRODUCT WORKSPACE</p><h1>One screen for deadline, evidence, and local manifest signals.</h1><textarea value={query} onChange={(e) => setQuery(e.target.value)}/></section>
+          <section className="window"><h3>EKS {selected.version}</h3><StatusPill version={selected}/><dl><dt>Standard ends</dt><dd>{selected.standardSupportEnd}</dd><dt>Extended ends</dt><dd>{selected.extendedSupportEnd}</dd></dl></section>
+          <section className="window"><h3>Scanner</h3><strong className="huge">{findings.length}</strong><span>deprecated API findings</span>{findings.map((f) => <p key={`${f.apiVersion}-${f.kind}`}>{f.kind} → {f.replacement}</p>)}</section>
+          <section className="window"><h3>Next checks</h3>{addons.slice(0, 4).map((a) => <label key={a.id}><input type="checkbox" defaultChecked/> {a.name}</label>)}</section>
+        </div>
+      </div>
+    </section>
+  </main>;
+}
+
+function DesignFive() {
+  const [version, setVersion] = useState('1.30');
+  const [clusters, setClusters] = useState(16);
+  const [months, setMonths] = useState(3);
+  const { selected, cost, text } = costSummary(version, clusters, months);
+  const severity = statusTone(selected);
+  return <main className="page d5">
+    <section className="observatory">
+      <div className="radar"><div className={`sweep ${severity}`}/>{eksVersions.slice(1, 7).map((v, i) => <i key={v.version} style={{ rotate: `${i * 54}deg`, scale: `${.55 + i * .08}` }}><b>{v.version}</b></i>)}</div>
+      <div className="obs-copy"><p className="kicker">/5 RISK OBSERVATORY</p><h1>A live-feeling radar for upgrade risk and cost gravity.</h1><p className="lead">This direction is intentionally cinematic: the site feels like an operational observatory, while every claim still resolves to a date, a price, or a command.</p><Controls version={version} setVersion={setVersion} clusters={clusters} setClusters={setClusters} months={months} setMonths={setMonths}/></div>
+      <div className="obs-stack"><div className="obs-ticket"><span>Projected exposure</span><strong>{formatCurrency(cost.extraTotal)}</strong><p>{clusters} clusters · {months} months · {formatHourlyCurrency(eksPricing.extendedPerClusterHour)} extended support hourly rate</p><CopyButton text={text} label="Copy alert"/></div><VersionMiniTable limit={5}/></div>
+    </section>
+  </main>;
+}
+
+function CurrentDesign({ route }: { route: Route }) {
+  if (route === '/2') return <DesignTwo/>;
+  if (route === '/3') return <DesignThree/>;
+  if (route === '/4') return <DesignFour/>;
+  if (route === '/5') return <DesignFive/>;
+  return <DesignOne/>;
 }
 
 function App() {
-  const [view, setView] = useState<View>('overview');
-  return <main>
-    <header><div className="brand"><span className="logo-dot"/> <span>EKS Upgrade Planner</span></div><nav>{nav.map(item => <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => setView(item.id)}>{item.label}</button>)}</nav></header>
-    {view === 'overview' && <Overview setView={setView}/>} {view === 'versions' && <VersionsView setView={setView}/>} {view === 'calculator' && <CostCalculator/>} {view === 'planner' && <UpgradePlanner/>} {view === 'scanner' && <BrowserScanner/>}
-  </main>;
+  const [route, setRoute] = useState<Route>(routeFromLocation());
+  useEffect(() => {
+    const onPop = () => setRoute(routeFromLocation());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  return <>
+    <DesignNav active={route} setRoute={setRoute}/>
+    <CurrentDesign route={route}/>
+  </>;
 }
 
 export default App;
