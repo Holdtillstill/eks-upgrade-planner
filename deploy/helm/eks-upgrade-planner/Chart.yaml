@@ -3,4 +3,4 @@ name: eks-upgrade-planner
 description: Production static SPA server for the EKS Upgrade Planner.
 type: application
 version: 0.1.0
-appVersion: "0.0.0"
+appVersion: "0.1.0"

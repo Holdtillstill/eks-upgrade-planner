@@ -1,11 +1,13 @@
 {
   "name": "eks-upgrade-planner",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc -b",
+    "generate:public-metadata": "node scripts/generate-public-metadata.js",
+    "prebuild": "npm run generate:public-metadata",
     "build": "npm run typecheck && vite build",
     "lint": "eslint .",
     "test": "vitest run",

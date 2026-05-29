@@ -31,3 +31,11 @@ app.kubernetes.io/component: web
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
+
+{{- define "eks-upgrade-planner.metricsSecretName" -}}
+{{- if .Values.metrics.auth.existingSecret -}}
+{{- .Values.metrics.auth.existingSecret -}}
+{{- else -}}
+{{- printf "%s-metrics" (include "eks-upgrade-planner.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}

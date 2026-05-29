@@ -40,12 +40,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: {{ include "eks-upgrade-planner.fullname" . }}-config
-          {{- if and .Values.metrics.auth.enabled .Values.metrics.auth.existingSecret }}
+          {{- if .Values.metrics.auth.enabled }}
           env:
             - name: METRICS_BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.metrics.auth.existingSecret | quote }}
+                  name: {{ include "eks-upgrade-planner.metricsSecretName" . | quote }}
                   key: {{ .Values.metrics.auth.tokenKey | quote }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}

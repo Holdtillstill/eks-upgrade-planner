@@ -9,9 +9,17 @@ data:
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
   HOST: "0.0.0.0"
   PORT: {{ .Values.containerPort | quote }}
-  APP_BASE_URL: {{ .Values.env.appBaseUrl | quote }}
-  APP_VERSION: {{ .Chart.AppVersion | quote }}
+  SITE_URL: {{ .Values.env.siteUrl | quote }}
+  APP_BASE_URL: {{ .Values.env.siteUrl | quote }}
+  APP_VERSION: {{ .Values.env.appVersion | default .Chart.AppVersion | quote }}
+  {{- with .Values.env.sourceVersion }}
+  SOURCE_VERSION: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.env.buildTime }}
+  BUILD_TIME: {{ . | quote }}
+  {{- end }}
   ENABLE_HSTS: {{ .Values.env.enableHsts | quote }}
+  ENABLE_DESIGN_EXPLORATIONS: {{ .Values.env.enableDesignExplorations | quote }}
   OTEL_SERVICE_NAME: {{ .Values.otel.serviceName | quote }}
   {{- if .Values.otel.enabled }}
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.otel.endpoint | quote }}

@@ -3,6 +3,9 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 
+ARG SITE_URL=http://localhost:8080
+ENV SITE_URL=${SITE_URL}
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -12,9 +15,16 @@ RUN npm run build
 FROM node:24-alpine AS runtime
 WORKDIR /app
 
+ARG APP_VERSION=0.1.0
+ARG SOURCE_VERSION=unknown
+ARG BUILD_TIME=unknown
+
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
-    PORT=8080
+    PORT=8080 \
+    APP_VERSION=${APP_VERSION} \
+    SOURCE_VERSION=${SOURCE_VERSION} \
+    BUILD_TIME=${BUILD_TIME}
 
 RUN addgroup -S app && adduser -S app -G app
 

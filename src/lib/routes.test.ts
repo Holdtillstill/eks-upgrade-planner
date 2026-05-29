@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addonCompatibilityPath, findAddonBySlug } from './addonLookup';
-import { productTabs, resolveAppRoute, versionGuidePath } from './routes';
+import { designExplorationsEnabled, productTabs, resolveAppRoute, versionGuidePath } from './routes';
 import { addons } from '../data/addons';
 
 describe('route helpers', () => {
@@ -15,8 +15,21 @@ describe('route helpers', () => {
   });
 
   it('preserves design exploration routes', () => {
-    expect(resolveAppRoute('/1')).toEqual({ kind: 'design', route: '/1' });
-    expect(resolveAppRoute('/10')).toEqual({ kind: 'design', route: '/10' });
+    expect(resolveAppRoute('/1', { env: { MODE: 'development' } })).toEqual({ kind: 'design', route: '/1' });
+    expect(resolveAppRoute('/10', { env: { MODE: 'development' } })).toEqual({ kind: 'design', route: '/10' });
+  });
+
+  it('disables design exploration routes in production or when explicitly disabled', () => {
+    expect(designExplorationsEnabled({ PROD: true, VITE_ENABLE_DESIGN_EXPLORATIONS: 'true' })).toBe(false);
+    expect(designExplorationsEnabled({ MODE: 'development', VITE_ENABLE_DESIGN_EXPLORATIONS: 'false' })).toBe(false);
+    expect(designExplorationsEnabled({ MODE: 'development' })).toBe(true);
+    expect(resolveAppRoute('/1', { env: { PROD: true } })).toMatchObject({ kind: 'product', tab: 'overview', canonicalPath: '/app' });
+    expect(resolveAppRoute('/10', { env: { NODE_ENV: 'production' } })).toMatchObject({ kind: 'product', tab: 'overview', canonicalPath: '/app' });
+    expect(resolveAppRoute('/1', { env: { MODE: 'development', VITE_ENABLE_DESIGN_EXPLORATIONS: 'false' } })).toMatchObject({
+      kind: 'product',
+      tab: 'overview',
+      canonicalPath: '/app',
+    });
   });
 
   it('resolves version guide and addon detail routes', () => {

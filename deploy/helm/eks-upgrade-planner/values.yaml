@@ -1,7 +1,8 @@
 replicaCount: 2
 
 image:
-  repository: ghcr.io/your-org/eks-upgrade-planner
+  # Set IMAGE_REPOSITORY or --set image.repository=... for production.
+  repository: localhost/eks-upgrade-planner
   tag: ""
   pullPolicy: IfNotPresent
 
@@ -14,8 +15,12 @@ containerPort: 8080
 env:
   nodeEnv: production
   logLevel: info
-  appBaseUrl: https://eks-upgrade-planner.example.com
+  siteUrl: http://localhost:8080
   enableHsts: "true"
+  enableDesignExplorations: "false"
+  appVersion: ""
+  sourceVersion: ""
+  buildTime: ""
 
 extraEnv: []
 
@@ -40,7 +45,7 @@ ingress:
   # Prometheus should scrape the ClusterIP Service/ServiceMonitor instead.
   blockMetricsPath: true
   hosts:
-    - host: eks-upgrade-planner.example.com
+    - host: eks-upgrade-planner.localhost
       paths:
         - path: /
           pathType: Prefix
@@ -48,11 +53,12 @@ ingress:
 
 metrics:
   auth:
-    enabled: false
-    # For public ingress, prefer enabling this and providing an existing secret.
-    # The secret must contain a token key unless you override tokenKey.
+    # Public Helm defaults require a bearer token for /metrics. Use an
+    # existingSecret for stable GitOps installs, or set token for local demos.
+    enabled: true
     existingSecret: ""
     tokenKey: token
+    token: ""
 
 serviceMonitor:
   enabled: true

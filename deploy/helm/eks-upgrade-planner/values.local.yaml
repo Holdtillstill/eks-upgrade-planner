@@ -1,0 +1,22 @@
+# Local/demo overrides. Do not use this file for a public ingress deployment.
+replicaCount: 1
+
+env:
+  nodeEnv: development
+  siteUrl: http://localhost:8080
+  enableHsts: "false"
+  enableDesignExplorations: "true"
+
+metrics:
+  auth:
+    enabled: false
+
+serviceMonitor:
+  enabled: false
+
+otel:
+  enabled: false
+  logsEnabled: false
+
+grafanaDashboard:
+  enabled: false
