@@ -30,18 +30,28 @@ describe('ProductShell integration', () => {
     expect(screen.getByRole('heading', { name: /upgrade control board/i })).toBeTruthy();
   });
 
-  it('renders the cost calculator and updates the bridge scenario output', () => {
-    renderProductRoute('/eks/extended-support-cost-calculator');
+  it('renders the cost calculator and shows zero modeled exposure for a release still safely in standard support', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-29T12:00:00Z'));
+    try {
+      renderProductRoute('/eks/extended-support-cost-calculator');
 
-    expect(screen.getByRole('heading', { name: /support-tier scenario ledger/i })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /bridge scenario/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getAllByText('$17,520').length).toBeGreaterThan(0);
+      expect(screen.getByRole('heading', { name: /support-tier scenario ledger/i })).toBeTruthy();
+      fireEvent.change(screen.getByLabelText('EKS version'), { target: { value: '1.35' } });
 
-    fireEvent.change(screen.getByLabelText('Clusters'), { target: { value: '3' } });
-    fireEvent.change(screen.getByLabelText(/months delayed:/i), { target: { value: '2' } });
+      expect(screen.getByRole('button', { name: /bridge scenario, \$0 exposure over 4 months/i })).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getAllByText('$0').length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/no extended-support billing in the 4-month window/i).length).toBeGreaterThan(0);
+      expect((screen.getByLabelText('Copyable Cost Brief') as HTMLTextAreaElement).value).toContain('Scenario exposure: $0');
 
-    expect(screen.getAllByText('$2,190').length).toBeGreaterThan(0);
-    expect((screen.getByLabelText('Copyable Cost Brief') as HTMLTextAreaElement).value).toContain('Monthly support-tier delta: $1,095');
+      fireEvent.change(screen.getByLabelText('Clusters'), { target: { value: '3' } });
+      fireEvent.change(screen.getByLabelText(/months delayed:/i), { target: { value: '2' } });
+
+      expect(screen.getByRole('button', { name: /bridge scenario, \$0 exposure over 2 months/i })).toBeTruthy();
+      expect((screen.getByLabelText('Copyable Cost Brief') as HTMLTextAreaElement).value).toContain('Billable extended-support window: no extended-support billing in the 2-month window');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('loads scanner example manifests and renders deprecated API findings', () => {

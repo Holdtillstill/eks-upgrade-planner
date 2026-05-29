@@ -4,7 +4,7 @@ import { deprecations } from '../data/deprecations';
 import { dataFreshness, eksVersions, type EksVersion } from '../data/versions';
 import { eksPricing } from '../data/pricing';
 import { addonCompatibilityPath, addonValidationChecklist, findAddonBySlug } from '../lib/addonLookup';
-import { calculateEksSupportCost, compareEksVersions, formatCurrency, generateHopSequence, getSupportStatus, statusLabel } from '../lib/planner';
+import { calculateEksSupportExposure, compareEksVersions, formatCurrency, generateHopSequence, getSupportStatus, statusLabel } from '../lib/planner';
 import { buildVersionGuide, generateCostReport, generateEvidenceReport, generatePlannerMarkdown, nodeModelChecks, nodeModelLabels, scanExampleManifest, type NodeModel, type scanManifest } from '../lib/reports';
 import { navigate } from '../lib/navigation';
 import { versionGuidePath, type AppRoute } from '../lib/routes';
@@ -223,13 +223,16 @@ export function CostSection({
   const [scenario, setScenario] = useState<ScenarioId>('bridge');
   const { selected, cost } = costSummary(currentVersion, clusterCount, monthsDelayed);
   const scenarioRows: ScenarioRow[] = [
-    { id: 'accelerate', label: 'Accelerate', months: Math.max(1, monthsDelayed - 2), note: 'fund platform focus now', cost: calculateEksSupportCost(clusterCount, Math.max(1, monthsDelayed - 2)) },
+    { id: 'accelerate', label: 'Accelerate', months: Math.max(1, monthsDelayed - 2), note: 'fund platform focus now', cost: calculateEksSupportExposure(selected, clusterCount, Math.max(1, monthsDelayed - 2)) },
     { id: 'bridge', label: 'Bridge', months: monthsDelayed, note: 'hold current delivery plan', cost },
-    { id: 'defer', label: 'Defer', months: Math.min(24, monthsDelayed + 4), note: 'accept support runway', cost: calculateEksSupportCost(clusterCount, Math.min(24, monthsDelayed + 4)) },
+    { id: 'defer', label: 'Defer', months: Math.min(24, monthsDelayed + 4), note: 'accept support runway', cost: calculateEksSupportExposure(selected, clusterCount, Math.min(24, monthsDelayed + 4)) },
   ];
   const activeScenario = scenarioRows.find((row) => row.id === scenario) ?? scenarioRows[1];
   const deferScenario = scenarioRows.find((row) => row.id === 'defer') ?? activeScenario;
   const avoided = Math.max(0, deferScenario.cost.extraTotal - activeScenario.cost.extraTotal);
+  const exposureCopy = activeScenario.cost.billableDays > 0
+    ? `${activeScenario.cost.billableDays} billable extended-support day(s) in the ${activeScenario.months}-month window`
+    : `no extended-support billing in the ${activeScenario.months}-month window`;
   const businessCase = `# EKS support-tier business case
 
 Version: EKS ${selected.version}
@@ -237,7 +240,8 @@ Standard support end: ${selected.standardSupportEnd}
 Scenario: ${activeScenario.label}
 Clusters: ${clusterCount}
 Exposure window: ${activeScenario.months} month(s)
-Monthly support-tier delta: ${formatCurrency(activeScenario.cost.extraMonthly)}
+Monthly rate delta if extended support is reached: ${formatCurrency(activeScenario.cost.extraMonthly)}
+Billable extended-support window: ${exposureCopy}
 Scenario exposure: ${formatCurrency(activeScenario.cost.extraTotal)}
 Avoided versus defer scenario: ${formatCurrency(avoided)}
 
@@ -271,8 +275,9 @@ ${eksPricing.note}`;
         <dl className="cost-ledger">
           <div><dt>Standard monthly</dt><dd>{formatCurrency(activeScenario.cost.standardMonthly)}</dd></div>
           <div><dt>Extended monthly</dt><dd>{formatCurrency(activeScenario.cost.extendedMonthly)}</dd></div>
-          <div><dt>Monthly delta</dt><dd>{formatCurrency(activeScenario.cost.extraMonthly)}</dd></div>
-          <div><dt>{activeScenario.months}-month delta</dt><dd>{formatCurrency(activeScenario.cost.extraTotal)}</dd></div>
+          <div><dt>Monthly rate delta</dt><dd>{formatCurrency(activeScenario.cost.extraMonthly)}</dd></div>
+          <div><dt>Billable window</dt><dd>{activeScenario.cost.billableDays}d</dd></div>
+          <div><dt>{activeScenario.months}-month exposure</dt><dd>{formatCurrency(activeScenario.cost.extraTotal)}</dd></div>
         </dl>
         <p className="small-note">EKS {selected.version} standard support ends {selected.standardSupportEnd}. <Source label={eksPricing.sourceLabel} url={eksPricing.sourceUrl}/></p>
       </section>
@@ -280,7 +285,7 @@ ${eksPricing.note}`;
       <section className="product-panel finance-paper">
         <span className="eyebrow">{activeScenario.label} case</span>
         <strong>{formatCurrency(activeScenario.cost.extraTotal)}</strong>
-        <p>{activeScenario.months} month exposure window, {formatCurrency(activeScenario.cost.extraMonthly)} extra per month, {formatCurrency(avoided)} avoided versus defer.</p>
+        <p>{activeScenario.months} month modeled delay, {exposureCopy}, {formatCurrency(avoided)} avoided versus defer.</p>
         <table className="finance-table product-finance-table">
           <thead><tr><th>Scenario</th><th>Window</th><th>Exposure</th><th>Planning note</th></tr></thead>
           <tbody>{scenarioRows.map((row) => <tr key={row.id} className={row.id === scenario ? 'selected' : ''}><td>{row.label}</td><td>{row.months} mo</td><td>{formatCurrency(row.cost.extraTotal)}</td><td>{row.note}</td></tr>)}</tbody>

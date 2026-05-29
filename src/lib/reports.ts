@@ -3,7 +3,7 @@ import { deprecations } from '../data/deprecations';
 import { eksPricing } from '../data/pricing';
 import { dataFreshness, eksVersions, type EksVersion } from '../data/versions';
 import {
-  calculateEksSupportCost,
+  calculateEksSupportExposure,
   compareEksVersions,
   formatCurrency,
   formatHourlyCurrency,
@@ -86,7 +86,7 @@ export function buildVersionGuide(version: string): VersionGuide {
   const effectiveTarget = compareEksVersions(targetVersion.version, selected.version) >= 0 ? targetVersion : selected;
   const hops = generateHopSequence(selected.version, effectiveTarget.version);
   const status = getSupportStatus(selected);
-  const cost = calculateEksSupportCost(1, 1);
+  const cost = calculateEksSupportExposure(selected, 1, 1);
   const costRisk = status === 'standard' || status === 'standard-ending-soon'
     ? `If EKS ${selected.version} remains after ${selected.standardSupportEnd}, this local estimate uses a ${formatCurrency(cost.extraMonthly)} per-cluster monthly support-tier delta.`
     : `EKS ${selected.version} is outside standard support in the static dataset; this local estimate uses a ${formatCurrency(cost.extraMonthly)} per-cluster monthly support-tier delta while extended support applies.`;
@@ -153,9 +153,9 @@ ${guide.postUpgradeValidation.map((item) => `- ${item}`).join('\n')}
 - Scanner checks pasted text for known apiVersion/kind pairs; it is not a Kubernetes schema validator.`;
 }
 
-export function generateCostReport(version: string, clusterCount: number, monthsDelayed: number): string {
+export function generateCostReport(version: string, clusterCount: number, monthsDelayed: number, now = new Date()): string {
   const selected = findEksVersion(version);
-  const cost = calculateEksSupportCost(clusterCount, monthsDelayed);
+  const cost = calculateEksSupportExposure(selected, clusterCount, monthsDelayed, now);
   return `# EKS extended support estimate
 
 Version: EKS ${selected.version}
@@ -169,8 +169,9 @@ Extended support end: ${selected.extendedSupportEnd}
 - Extended support control-plane rate: ${formatHourlyCurrency(eksPricing.extendedPerClusterHour)} per cluster hour
 - Standard monthly estimate: ${formatCurrency(cost.standardMonthly)}
 - Extended monthly estimate: ${formatCurrency(cost.extendedMonthly)}
-- Monthly support-tier delta: ${formatCurrency(cost.extraMonthly)}
-- ${monthsDelayed}-month support-tier delta: ${formatCurrency(cost.extraTotal)}
+- Monthly rate delta if extended support is reached: ${formatCurrency(cost.extraMonthly)}
+- Billable extended-support days in modeled window: ${cost.billableDays}
+- Modeled support-tier exposure: ${formatCurrency(cost.extraTotal)}
 
 ## Sources and limits
 - Lifecycle source: ${selected.sourceUrl}
@@ -185,7 +186,7 @@ export function generatePlannerMarkdown(input: PlannerReportInput): string {
   const effectiveTarget = compareEksVersions(target.version, current.version) < 0 ? current : target;
   const hops = generateHopSequence(current.version, effectiveTarget.version);
   const selectedAddons = addons.filter((addon) => input.selectedAddonIds.includes(addon.id));
-  const cost = calculateEksSupportCost(input.clusterCount, input.monthsDelayed);
+  const cost = calculateEksSupportExposure(current, input.clusterCount, input.monthsDelayed);
 
   return `# EKS upgrade RFC
 
@@ -209,8 +210,9 @@ ${selectedAddons.map((addon) => `- ${addon.name}: ${addon.checks[0]} (${addon.so
 ${input.scannerFindings.length ? input.scannerFindings.map((finding) => `- ${finding.severity.toUpperCase()}: line ${finding.line}, ${finding.kind} ${finding.apiVersion}; use ${finding.replacement}. ${finding.migrationGuide}`).join('\n') : '- No deprecated API matches detected in pasted manifest text.'}
 
 ## Cost exposure
-- Monthly support-tier delta if delayed into extended support: ${formatCurrency(cost.extraMonthly)}
-- ${input.monthsDelayed}-month support-tier delta: ${formatCurrency(cost.extraTotal)}
+- Monthly rate delta if delayed into extended support: ${formatCurrency(cost.extraMonthly)}
+- Billable extended-support days in modeled window: ${cost.billableDays}
+- Modeled support-tier exposure: ${formatCurrency(cost.extraTotal)}
 - Pricing source: ${eksPricing.sourceUrl}
 
 ## Limitations

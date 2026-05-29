@@ -1,6 +1,6 @@
 import { eksPricing } from '../data/pricing';
 import { eksVersions, type EksVersion } from '../data/versions';
-import { calculateEksSupportCost, daysUntil, formatCurrency, getSupportStatus } from './planner';
+import { calculateEksSupportExposure, daysUntil, formatCurrency, getSupportStatus } from './planner';
 
 export const defaultManifest = `apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -24,12 +24,15 @@ export function statusTone(version: EksVersion) {
   return 'bad';
 }
 
-export function costSummary(version: string, clusters: number, months: number) {
+export function costSummary(version: string, clusters: number, months: number, now = new Date()) {
   const selected = eksVersions.find((v) => v.version === version) ?? eksVersions[0];
-  const cost = calculateEksSupportCost(clusters, months);
-  const alreadyExtended = getSupportStatus(selected).includes('extended') || getSupportStatus(selected) === 'expired';
-  const label = alreadyExtended ? 'current extra exposure' : 'possible exposure if delayed past standard support';
-  const text = `EKS ${version} · ${clusters} cluster(s) · ${months} month(s)\nStandard support ends: ${selected.standardSupportEnd}\nExtended support ends: ${selected.extendedSupportEnd}\nStandard monthly: ${formatCurrency(cost.standardMonthly)}\nExtended monthly: ${formatCurrency(cost.extendedMonthly)}\nExtra monthly: ${formatCurrency(cost.extraMonthly)}\nExtra ${months}-month exposure: ${formatCurrency(cost.extraTotal)}\nSource: ${eksPricing.sourceUrl}`;
+  const cost = calculateEksSupportExposure(selected, clusters, months, now);
+  const alreadyExtended = getSupportStatus(selected, now).includes('extended') || getSupportStatus(selected, now) === 'expired';
+  const label = alreadyExtended ? 'current extended-support exposure' : 'modeled exposure before standard support ends';
+  const exposureLine = cost.billableDays > 0
+    ? `${cost.billableDays} billable extended-support day(s) inside the ${months}-month window`
+    : `No extended-support billing inside the ${months}-month window`;
+  const text = `EKS ${version} · ${clusters} cluster(s) · ${months} month(s)\nStandard support ends: ${selected.standardSupportEnd}\nExtended support ends: ${selected.extendedSupportEnd}\nStandard monthly: ${formatCurrency(cost.standardMonthly)}\nExtended monthly: ${formatCurrency(cost.extendedMonthly)}\nMonthly rate delta if extended support is reached: ${formatCurrency(cost.extraMonthly)}\n${exposureLine}\nModeled ${months}-month exposure: ${formatCurrency(cost.extraTotal)}\nSource: ${eksPricing.sourceUrl}`;
   return { selected, cost, label, text };
 }
 
