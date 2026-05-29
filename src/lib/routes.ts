@@ -5,6 +5,18 @@ import { findAddonBySlug } from './addonLookup';
 export const designRoutes = ['/1', '/2', '/3', '/4', '/5', '/6', '/7', '/8', '/9', '/10'] as const;
 export type DesignRoute = (typeof designRoutes)[number];
 
+type RouteEnv = {
+  MODE?: string;
+  NODE_ENV?: string;
+  PROD?: boolean;
+  VITE_ENABLE_DESIGN_EXPLORATIONS?: string | boolean;
+};
+
+type ResolveRouteOptions = {
+  allowDesignExplorations?: boolean;
+  env?: RouteEnv;
+};
+
 export type ProductTab = 'overview' | 'versions' | 'cost' | 'planner' | 'scanner' | 'guides' | 'addons' | 'evidence';
 
 export type ProductDetail =
@@ -47,6 +59,20 @@ export function isDesignRoute(pathname: string): pathname is DesignRoute {
   return designRoutes.includes(pathname as DesignRoute);
 }
 
+export function designExplorationsEnabled(env: RouteEnv = import.meta.env): boolean {
+  const flag = env.VITE_ENABLE_DESIGN_EXPLORATIONS;
+  if (typeof flag === 'string' && ['0', 'false', 'no', 'off'].includes(flag.trim().toLowerCase())) return false;
+  if (flag === false) return false;
+  if (env.PROD || env.NODE_ENV === 'production' || env.MODE === 'production') return false;
+  return true;
+}
+
+function routeAllowsDesign(options: ResolveRouteOptions): boolean {
+  if (typeof options.allowDesignExplorations === 'boolean') return options.allowDesignExplorations;
+  if (options.env) return designExplorationsEnabled(options.env);
+  return designExplorationsEnabled();
+}
+
 export function versionToSlug(version: string): string {
   return version.replace(/\./g, '-');
 }
@@ -59,9 +85,9 @@ export function versionGuidePath(version: string): string {
   return `/eks/${versionToSlug(version)}-upgrade-guide`;
 }
 
-export function resolveAppRoute(pathname: string): AppRoute {
+export function resolveAppRoute(pathname: string, options: ResolveRouteOptions = {}): AppRoute {
   const path = normalizePath(pathname);
-  if (isDesignRoute(path)) return { kind: 'design', route: path };
+  if (isDesignRoute(path) && routeAllowsDesign(options)) return { kind: 'design', route: path };
 
   const tab = productRouteTabs[path];
   if (tab) {

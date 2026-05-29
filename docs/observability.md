@@ -23,7 +23,7 @@ Route labels are normalized to avoid high cardinality:
 - `/eks/:version-upgrade-guide`
 - `/addons/:addon/eks-compatibility`
 - `/assets/*`
-- `/:design`
+- `/:design` when design explorations are enabled outside production
 - `/spa-fallback`
 
 Key metrics:
@@ -65,6 +65,10 @@ curl -fsS http://127.0.0.1:8080/metrics | grep http_requests_total
 curl -I http://127.0.0.1:8080/eks/1-35-upgrade-guide
 ```
 
+Helm production values enable `/metrics` bearer-token auth by default. Local
+Node runs leave `METRICS_BEARER_TOKEN` unset unless you choose to test auth
+explicitly.
+
 Run the smoke script against an already running server:
 
 ```bash
@@ -104,7 +108,8 @@ Planner` dashboard ConfigMap for Grafana's dashboard sidecar.
 ## Logs and Traces
 
 Every request log includes `requestId`, `traceId`, method, raw path, normalized
-route, status code, and duration.
+route, status code, duration, user agent, and remote address. Product account
+data and pasted manifests are not logged or stored by the app.
 
 The included OpenTelemetry Collector values receive OTLP logs from the app and
 export them to Loki. To use stdout/container log collection instead, install a

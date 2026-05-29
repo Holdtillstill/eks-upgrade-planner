@@ -60,13 +60,13 @@ function setSecurityHeaders(res) {
       "default-src 'self'",
       "base-uri 'self'",
       "connect-src 'self'",
-      "font-src 'self' data:",
+      "font-src 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
-      "img-src 'self' data:",
+      "img-src 'self'",
       "object-src 'none'",
       "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self'",
     ].join('; '),
   );
   if (process.env.ENABLE_HSTS !== 'false') {

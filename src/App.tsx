@@ -27,7 +27,17 @@ import {
   scanManifest,
   type NodeModel,
 } from './lib/reports';
-import { productTabs, resolveAppRoute, versionGuidePath, type AppRoute, type DesignRoute, type ProductTab } from './lib/routes';
+import {
+  productTabs,
+  resolveAppRoute,
+  versionGuidePath,
+  type AppRoute,
+  type DesignRoute,
+  type ProductTab,
+} from './lib/routes';
+
+const designExplorationsAvailable = import.meta.env.DEV &&
+  !['0', 'false', 'no', 'off'].includes(String(import.meta.env.VITE_ENABLE_DESIGN_EXPLORATIONS ?? '').trim().toLowerCase());
 
 const routes: { path: DesignRoute; name: string; idea: string }[] = [
   { path: '/1', name: 'Mission Control', idea: 'orbital command center' },
@@ -107,6 +117,15 @@ function costSummary(version: string, clusters: number, months: number) {
   return { selected, cost, label, text };
 }
 
+function dialFillClass(extraMonthly: number) {
+  const percent = Math.min(100, Math.max(8, extraMonthly / 25));
+  if (percent >= 100) return 'fill-100';
+  if (percent >= 75) return 'fill-75';
+  if (percent >= 50) return 'fill-50';
+  if (percent >= 25) return 'fill-25';
+  return 'fill-08';
+}
+
 function deadlineCopy(version: EksVersion) {
   const standardDays = daysUntil(version.standardSupportEnd);
   const extendedDays = daysUntil(version.extendedSupportEnd);
@@ -130,7 +149,7 @@ function CostDial({ version, clusters, months }: { version: string; clusters: nu
   return <div className="cost-dial">
     <p>{label}</p>
     <strong>{formatCurrency(cost.extraTotal)}</strong>
-    <div className="dial-bar"><i style={{ width: `${Math.min(100, Math.max(8, cost.extraMonthly / 25))}%` }} /></div>
+    <div className="dial-bar"><i className={dialFillClass(cost.extraMonthly)} /></div>
     <span>{formatCurrency(cost.extraMonthly)} / month delta</span>
   </div>;
 }
@@ -239,7 +258,7 @@ function DesignFive() {
   const severity = statusTone(selected);
   return <main className="page d5">
     <section className="observatory">
-      <div className="radar"><div className={`sweep ${severity}`}/>{eksVersions.slice(1, 7).map((v, i) => <i key={v.version} style={{ rotate: `${i * 54}deg`, scale: `${.55 + i * .08}` }}><b>{v.version}</b></i>)}</div>
+      <div className="radar"><div className={`sweep ${severity}`}/>{eksVersions.slice(1, 7).map((v, i) => <i key={v.version} className={`r${i}`}><b>{v.version}</b></i>)}</div>
       <div className="obs-copy"><p className="kicker">/5 RISK OBSERVATORY</p><h1>A live-feeling radar for upgrade risk and cost gravity.</h1><p className="lead">This direction is intentionally cinematic: the site feels like an operational observatory, while every claim still resolves to a date, a price, or a command.</p><Controls version={version} setVersion={setVersion} clusters={clusters} setClusters={setClusters} months={months} setMonths={setMonths}/></div>
       <div className="obs-stack"><div className="obs-ticket"><span>Projected exposure</span><strong>{formatCurrency(cost.extraTotal)}</strong><p>{clusters} clusters · {months} months · {formatHourlyCurrency(eksPricing.extendedPerClusterHour)} extended support hourly rate</p><CopyButton text={text} label="Copy alert"/></div><VersionMiniTable limit={5}/></div>
     </section>
@@ -317,7 +336,7 @@ ${tasks.map((task) => `${checked[task.id] ? '[x]' : '[ ]'} ${task.label} - ${tas
           <div className="war-meter">
             <span>Readiness</span>
             <strong>{completed}/{tasks.length}</strong>
-            <i style={{ width: `${(completed / tasks.length) * 100}%` }} />
+            <i className={`w${completed}`} />
           </div>
           {tasks.map((task) => <label key={task.id} className={checked[task.id] ? 'done' : ''}>
             <input type="checkbox" checked={Boolean(checked[task.id])} onChange={() => setChecked((current) => toggleRecord(current, task.id))}/>
@@ -688,7 +707,8 @@ function SourceRail({ currentVersion, scannerFindings }: { currentVersion: strin
     </div>
     <div className="trust-box">
       <span className="eyebrow">Trust Model</span>
-      <p>Runs locally in the browser. No AWS APIs, accounts, credentials, cluster discovery, or manifest upload are used.</p>
+      <p>Planner inputs and pasted manifests run locally in the browser. No AWS APIs, product accounts, credentials, cluster discovery, or manifest upload are used or stored.</p>
+      <p>Production request logs may include path, IP address, and user agent for operations and abuse prevention.</p>
       <p>Cost values are estimates for the EKS control-plane support tier only.</p>
     </div>
     <div className="source-list">
@@ -1469,7 +1489,7 @@ function ProductShell({ route, setRoute }: { route: Extract<AppRoute, { kind: 'p
         <em>release train workspace</em>
       </a>
       <ProductTabs active={route.tab} guideVersion={displayedGuideVersion} setRoute={setRoute}/>
-      <button className="design-link" type="button" onClick={() => navigate('/1', setRoute)}>Design explorations</button>
+      {designExplorationsAvailable && <button className="design-link" type="button" onClick={() => navigate('/1', setRoute)}>Design explorations</button>}
     </aside>
 
     <div className="product-main">
@@ -1520,10 +1540,13 @@ function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
   if (route.kind === 'design') {
-    return <>
-      <DesignNav active={route.route} setRoute={setRoute}/>
-      <CurrentDesign route={route.route}/>
-    </>;
+    if (designExplorationsAvailable) {
+      return <>
+        <DesignNav active={route.route} setRoute={setRoute}/>
+        <CurrentDesign route={route.route}/>
+      </>;
+    }
+    return <ProductShell route={{ kind: 'product', tab: 'overview', canonicalPath: '/app' }} setRoute={setRoute}/>;
   }
   return <ProductShell route={route} setRoute={setRoute}/>;
 }
