@@ -77,4 +77,27 @@ describe('ProductShell integration', () => {
     expect(within(table).getByRole('rowheader', { name: /eks 1\.31/i })).toBeTruthy();
     expect(within(table).getByRole('button', { name: /select eks 1\.31/i })).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('uses distinct source rail labels when links point to different source pages', () => {
+    const { container } = renderProductRoute('/app');
+
+    const sourceRail = container.querySelector('[aria-label="Data freshness and source links"]');
+    if (!(sourceRail instanceof HTMLElement)) throw new Error('source rail not found');
+    const links = within(sourceRail).getAllByRole('link');
+    const labelToHrefs = new Map<string, Set<string>>();
+    for (const link of links) {
+      const label = link.textContent ?? '';
+      if (!labelToHrefs.has(label)) labelToHrefs.set(label, new Set());
+      labelToHrefs.get(label)?.add(link.getAttribute('href') ?? '');
+    }
+
+    expect(within(sourceRail).getByRole('link', { name: /amazon vpc cni add-on docs/i })).toBeTruthy();
+    expect(within(sourceRail).getByRole('link', { name: /amazon eks coredns add-on docs/i })).toBeTruthy();
+    expect(within(sourceRail).getByRole('link', { name: /kubernetes podsecuritypolicy v1\.25 deprecation guide/i })).toBeTruthy();
+    expect(within(sourceRail).queryByRole('link', { name: /^open source: amazon eks add-ons documentation$/i })).toBeNull();
+
+    for (const [label, hrefs] of labelToHrefs) {
+      expect(hrefs.size, `${label} should not point to multiple URLs`).toBe(1);
+    }
+  });
 });
