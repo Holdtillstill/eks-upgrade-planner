@@ -3,7 +3,7 @@ import { addons } from '../data/addons';
 import { deprecations } from '../data/deprecations';
 import { dataFreshness, eksVersions, type EksVersion } from '../data/versions';
 import { eksPricing } from '../data/pricing';
-import { formatCurrency, type calculateEksSupportCost } from '../lib/planner';
+import { formatCurrency, type calculateEksSupportExposure } from '../lib/planner';
 import { navigate } from '../lib/navigation';
 import { productTabs, versionGuidePath, type AppRoute, type ProductTab } from '../lib/routes';
 import { CopyButton, Source } from '../components/shared';
@@ -119,7 +119,7 @@ export type ScenarioRow = {
   label: string;
   months: number;
   note: string;
-  cost: ReturnType<typeof calculateEksSupportCost>;
+  cost: ReturnType<typeof calculateEksSupportExposure>;
 };
 
 export function ScenarioLedger({ rows, activeId, setActiveId }: { rows: ScenarioRow[]; activeId: ScenarioId; setActiveId: (id: ScenarioId) => void }) {

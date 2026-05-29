@@ -32,6 +32,18 @@ export function statusLabel(status: SupportStatus): string {
   }[status];
 }
 
+function utcDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function addUtcMonths(date: Date, months: number): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, date.getUTCDate()));
+}
+
+function dateFromIsoDay(value: string): Date {
+  return new Date(`${value}T00:00:00Z`);
+}
+
 export function calculateEksSupportCost(clusterCount: number, months: number) {
   const standardMonthly = eksPricing.standardPerClusterHour * eksPricing.hoursPerMonth * clusterCount;
   const extendedMonthly = eksPricing.extendedPerClusterHour * eksPricing.hoursPerMonth * clusterCount;
@@ -43,6 +55,32 @@ export function calculateEksSupportCost(clusterCount: number, months: number) {
     standardTotal: standardMonthly * months,
     extendedTotal: extendedMonthly * months,
     extraTotal: extraMonthly * months,
+    billableHours: eksPricing.hoursPerMonth * months,
+    billableMonths: months,
+  };
+}
+
+export function calculateEksSupportExposure(version: EksVersion, clusterCount: number, months: number, now = new Date()) {
+  const rateCard = calculateEksSupportCost(clusterCount, months);
+  const start = utcDay(now);
+  const end = addUtcMonths(start, months);
+  const extendedStart = dateFromIsoDay(version.standardSupportEnd);
+  const extendedEnd = dateFromIsoDay(version.extendedSupportEnd);
+  const billableStart = new Date(Math.max(start.getTime(), extendedStart.getTime()));
+  const billableEnd = new Date(Math.min(end.getTime(), extendedEnd.getTime()));
+  const billableDays = Math.max(0, Math.ceil((billableEnd.getTime() - billableStart.getTime()) / MS_PER_DAY));
+  const billableHours = billableDays * 24;
+  const billableMonths = billableHours / eksPricing.hoursPerMonth;
+  const extraHourly = (eksPricing.extendedPerClusterHour - eksPricing.standardPerClusterHour) * clusterCount;
+
+  return {
+    ...rateCard,
+    billableDays,
+    billableHours,
+    billableMonths,
+    standardTotal: eksPricing.standardPerClusterHour * billableHours * clusterCount,
+    extendedTotal: eksPricing.extendedPerClusterHour * billableHours * clusterCount,
+    extraTotal: extraHourly * billableHours,
   };
 }
 

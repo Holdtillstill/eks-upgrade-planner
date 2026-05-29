@@ -11,10 +11,11 @@ describe('report helpers', () => {
     expect(guide.markdown).toContain('Deprecated API checks');
   });
 
-  it('generates cost reports with pricing limits', () => {
-    const report = generateCostReport('1.31', 2, 3);
-    expect(report).toContain('Monthly support-tier delta: $730');
-    expect(report).toContain('3-month support-tier delta: $2,190');
+  it('generates cost reports with pricing limits and date-aware exposure', () => {
+    const report = generateCostReport('1.35', 2, 3, new Date('2026-05-29T12:00:00Z'));
+    expect(report).toContain('Monthly rate delta if extended support is reached: $730');
+    expect(report).toContain('Billable extended-support days in modeled window: 0');
+    expect(report).toContain('Modeled support-tier exposure: $0');
     expect(report).toContain('Worker nodes, Fargate, EBS');
   });
 

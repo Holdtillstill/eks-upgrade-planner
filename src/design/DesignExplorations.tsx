@@ -5,7 +5,7 @@ import { deprecations } from '../data/deprecations';
 import { dataFreshness, eksVersions } from '../data/versions';
 import { eksPricing } from '../data/pricing';
 import { navigate } from '../lib/navigation';
-import { calculateEksSupportCost, compareEksVersions, daysUntil, formatCurrency, formatHourlyCurrency, generateHopSequence, getSupportStatus, scanDeprecatedApis, statusLabel } from '../lib/planner';
+import { calculateEksSupportExposure, compareEksVersions, daysUntil, formatCurrency, formatHourlyCurrency, generateHopSequence, getSupportStatus, scanDeprecatedApis, statusLabel } from '../lib/planner';
 import { type AppRoute, type DesignRoute } from '../lib/routes';
 import { costSummary, deadlineCopy, defaultManifest, dialFillClass, statusTone, toggleRecord } from '../lib/ui';
 import { CopyButton, Source, StatusPill } from '../components/shared';
@@ -264,7 +264,7 @@ function DesignSeven() {
     { id: 'accelerate' as const, label: 'Accelerate', months: Math.max(1, months - 2), note: 'fund focused platform time now' },
     { id: 'bridge' as const, label: 'Bridge', months, note: 'keep current delivery plan' },
     { id: 'defer' as const, label: 'Defer', months: Math.min(24, months + 4), note: 'accept extended support runway' },
-  ].map((row) => ({ ...row, cost: calculateEksSupportCost(clusters, row.months) }));
+  ].map((row) => ({ ...row, cost: calculateEksSupportExposure(selected, clusters, row.months) }));
   const activeScenario = scenarioRows.find((row) => row.id === scenario) ?? scenarioRows[1];
   const deferCost = scenarioRows.find((row) => row.id === 'defer')?.cost.extraTotal ?? activeScenario.cost.extraTotal;
   const avoided = Math.max(0, deferCost - activeScenario.cost.extraTotal);
