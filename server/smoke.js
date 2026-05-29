@@ -5,7 +5,7 @@ const checks = [
   { path: '/healthz', expect: 200, contains: '"status":"ok"' },
   { path: '/readyz', expect: 200, contains: '"status":"ready"' },
   { path: '/metrics', expect: 200, contains: 'http_requests_total', token: metricsToken },
-  { path: '/eks/1-35-upgrade-guide', expect: 200, contains: '<div id="root"></div>' },
+  { path: '/eks/1-35-upgrade-guide', expect: 200, contains: 'data-prerendered-route="/eks/1-35-upgrade-guide"' },
 ];
 
 let failures = 0;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { designExplorationsEnabled, normalizeRoute, shouldServeSpaFallback } from './routes.js';
+import { contentSecurityPolicy } from './security.js';
 
 describe('server route helpers', () => {
   it('allows design exploration routes outside production by default', () => {
@@ -14,5 +15,12 @@ describe('server route helpers', () => {
     expect(normalizeRoute('/1', { env: { NODE_ENV: 'production' } })).toBe('/spa-fallback');
     expect(shouldServeSpaFallback('GET', '/10', 'text/html', { env: { NODE_ENV: 'production' } })).toBe(false);
     expect(shouldServeSpaFallback('GET', '/1', 'text/html', { env: { NODE_ENV: 'development', ENABLE_DESIGN_EXPLORATIONS: 'false' } })).toBe(false);
+  });
+});
+
+describe('security headers', () => {
+  it('keeps style sources self-only without unsafe-inline', () => {
+    expect(contentSecurityPolicy).toContain("style-src 'self'");
+    expect(contentSecurityPolicy).not.toContain("'unsafe-inline'");
   });
 });

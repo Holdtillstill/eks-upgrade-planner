@@ -7,6 +7,7 @@ import zlib from 'node:zlib';
 import { createMetrics } from './metrics.js';
 import { createLogger, createTracer } from './observability.js';
 import { normalizeRoute, shouldServeSpaFallback } from './routes.js';
+import { setSecurityHeaders } from './security.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -48,32 +49,6 @@ function isCompressible(contentType) {
   return /^(text\/|application\/(javascript|json|manifest\+json|xml))/.test(contentType) || contentType.includes('svg+xml');
 }
 
-function setSecurityHeaders(res) {
-  res.setHeader('x-content-type-options', 'nosniff');
-  res.setHeader('x-frame-options', 'DENY');
-  res.setHeader('referrer-policy', 'strict-origin-when-cross-origin');
-  res.setHeader('cross-origin-opener-policy', 'same-origin');
-  res.setHeader('permissions-policy', 'camera=(), microphone=(), geolocation=(), payment=()');
-  res.setHeader(
-    'content-security-policy',
-    [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "connect-src 'self'",
-      "font-src 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      "img-src 'self'",
-      "object-src 'none'",
-      "script-src 'self'",
-      "style-src 'self'",
-    ].join('; '),
-  );
-  if (process.env.ENABLE_HSTS !== 'false') {
-    res.setHeader('strict-transport-security', 'max-age=31536000; includeSubDomains');
-  }
-}
-
 function sendJson(req, res, statusCode, payload) {
   const body = JSON.stringify(payload);
   res.writeHead(statusCode, {
@@ -102,7 +77,7 @@ function safeStaticPath(pathname) {
 
 function cacheControlFor(filePath) {
   const relative = path.relative(distDir, filePath).replaceAll(path.sep, '/');
-  if (relative === 'index.html') return 'no-cache';
+  if (relative === 'index.html' || relative.endsWith('/index.html')) return 'no-cache';
   if (relative.startsWith('assets/')) return 'public, max-age=31536000, immutable';
   if (relative === 'sitemap.xml' || relative === 'robots.txt' || relative === 'manifest.webmanifest') {
     return 'public, max-age=300';
@@ -255,7 +230,10 @@ async function handleRequest(req, res) {
     }
 
     const staticPath = safeStaticPath(url.pathname);
-    if (staticPath && await serveFile(req, res, staticPath)) return;
+    if (staticPath) {
+      if (await serveFile(req, res, staticPath)) return;
+      if (!path.extname(staticPath) && await serveFile(req, res, path.join(staticPath, 'index.html'))) return;
+    }
 
     if (shouldServeSpaFallback(req.method || 'GET', url.pathname, String(req.headers.accept || ''))) {
       await serveFile(req, res, path.join(distDir, 'index.html'));

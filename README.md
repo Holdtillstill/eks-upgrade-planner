@@ -12,7 +12,8 @@ become extended-support bills or risky change windows.
 - Local-only deprecated Kubernetes API scanner for pasted YAML/text.
 - A minimal production Node server for the built Vite app with structured logs,
   `/healthz`, `/readyz`, `/metrics`, request IDs, security headers, static asset
-  caching, SPA deep-link fallback, and optional OTLP traces/logs.
+  caching, prerendered public route HTML, SPA deep-link fallback, and optional
+  OTLP traces/logs.
 
 ## Local development
 
@@ -39,12 +40,18 @@ Operational endpoints:
 - `GET /healthz` - process liveness.
 - `GET /readyz` - verifies `dist/index.html` is readable.
 - `GET /metrics` - Prometheus text metrics for process/runtime and HTTP traffic.
-- Deep links such as `/eks/1-35-upgrade-guide` fall back to `dist/index.html`.
+- Public deep links such as `/eks/1-35-upgrade-guide` are served from
+  prerendered `dist/**/index.html` files, then the React app mounts normally.
+- Unknown extensionless app routes still fall back to `dist/index.html` for SPA
+  behavior.
 
 `SITE_URL` controls canonical, OpenGraph, `robots.txt`, and `sitemap.xml`
 metadata. If it is unset, local builds default to `http://localhost:8080`.
 `npm run generate:public-metadata` regenerates `public/robots.txt` and
-`public/sitemap.xml`; `npm run build` runs it automatically.
+`public/sitemap.xml`; `npm run build` runs it automatically before Vite and runs
+`npm run prerender` afterward. The prerender step writes route-specific static
+HTML for `/`, `/app`, the public `/eks/*` pages, every version guide, and every
+add-on compatibility route listed in `scripts/public-routes.js`.
 
 Design exploration routes `/1` through `/10` are available in development by
 default. Production builds disable them, and development builds can also disable
@@ -129,8 +136,8 @@ This MVP uses static source-linked data in `src/data/`. It does **not** call AWS
 - The scanner is regex/text based, not a full Kubernetes schema validator.
 - Addon compatibility is intentionally framed as a verification checklist, not an authoritative compatibility guarantee.
 - Cost calculations cover EKS control-plane support-tier pricing only; worker nodes, Fargate, EBS, IPv4, data transfer, and workload costs are excluded.
-- SEO metadata is best-effort for a single-page app. Route-specific titles,
-  descriptions, and crawlable per-route HTML require prerendering or static
-  generation later.
+- Prerendered SEO coverage is generated only for the public route list in
+  `scripts/public-routes.js`; add new public landing pages there when they
+  should appear in the sitemap and static HTML output.
 
 More production notes are in `docs/production-readiness.md`.

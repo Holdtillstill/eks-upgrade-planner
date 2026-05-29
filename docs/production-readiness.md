@@ -9,10 +9,14 @@ There is no database and no backend product feature surface.
 Request flow:
 
 1. Build assets with `SITE_URL=https://planner.example.com npm run build`.
-2. Start `node server/index.js`.
-3. Serve immutable hashed Vite assets from `/assets/*`.
-4. Serve `index.html` with `no-cache`.
-5. Return `index.html` for SPA deep links such as `/eks/1-35-upgrade-guide`.
+2. `prebuild` writes `public/robots.txt` and `public/sitemap.xml`.
+3. Vite writes the client bundle to `dist/`.
+4. `postbuild` prerenders the public route list to `dist/**/index.html`.
+5. Start `node server/index.js`.
+6. Serve immutable hashed Vite assets from `/assets/*`.
+7. Serve prerendered public route HTML with `no-cache`, then let the React app
+   mount normally in the browser.
+8. Return root `index.html` for unknown SPA deep links that are not prerendered.
 
 Vite now builds with `base: "/"` because relative asset URLs break on public
 deep links like `/eks/versions`.
@@ -23,7 +27,9 @@ deep links like `/eks/versions`.
 - `/readyz`: readiness check for readable `dist/index.html`.
 - `/metrics`: Prometheus metrics.
 - Static files from `dist/`.
-- SPA fallback for extensionless `GET` and `HEAD` requests.
+- Prerendered public route HTML from route directory `index.html` files.
+- SPA fallback for extensionless `GET` and `HEAD` requests not matched by a
+  prerendered file.
 
 ## Security and HTTP Behavior
 
@@ -41,8 +47,10 @@ Headers include:
 - `Strict-Transport-Security` unless `ENABLE_HSTS=false`
 
 The Content Security Policy uses self-only network sources for scripts, styles,
-fonts, images, and connections. The app does not import Google Fonts or call an
-external font host.
+fonts, images, and connections. `style-src` is kept at `'self'` with no
+`'unsafe-inline'`; tests guard against inline style attributes and `<style>`
+tags in source HTML, TSX, and SVG assets. The app does not import Google Fonts
+or call an external font host.
 
 ## Configuration
 
@@ -67,16 +75,23 @@ Common environment variables:
 
 ## SEO
 
-`index.html` now has default title, description, OpenGraph, Twitter card,
-theme color, manifest, and canonical metadata. `npm run generate:public-metadata`
-uses `SITE_URL` to write `public/robots.txt` and `public/sitemap.xml` for the
-primary app routes, EKS version pages, and add-on compatibility pages. `npm run
-build` runs that generator automatically.
+`index.html` has a managed metadata block for title, description, OpenGraph,
+Twitter card, theme color, manifest, and canonical metadata. `npm run
+generate:public-metadata` uses `SITE_URL` to write `public/robots.txt` and
+`public/sitemap.xml` for the primary app routes, EKS version pages, and add-on
+compatibility pages. `npm run build` runs that generator automatically, then
+`npm run prerender` writes route-specific static HTML files for the same public
+route list.
 
-This is still a SPA. Crawlers that do not execute JavaScript will only see the
-default HTML shell. Route-specific HTML, titles, descriptions, and social cards
-should be handled by prerendering or static generation if SEO becomes a primary
-acquisition channel. Set `SITE_URL` during every production build before launch.
+The prerendered files include route-specific canonical, OpenGraph, Twitter, and
+description tags plus crawlable body copy for `/`, `/app`, `/eks/versions`,
+`/eks/extended-support-cost-calculator`, `/eks/upgrade-planner`,
+`/eks/deprecated-api-scanner`, `/eks/addons`, `/eks/evidence-pack`, every
+`/eks/<version>-upgrade-guide`, and every
+`/addons/<slug>/eks-compatibility`. The public route list lives in
+`scripts/public-routes.js`; update it whenever a new SEO-critical route should
+enter the sitemap and prerender output. Set `SITE_URL` during every production
+build before launch.
 
 ## Container and Kubernetes
 
