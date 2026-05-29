@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { absoluteUrl, normalizeSiteUrl, publicRoutes, siteName, socialImagePath } from './public-routes.js';
+import { absoluteUrl, normalizeSiteUrl, publicRoutes, requireProductionSiteUrl, siteName, socialImagePath } from './public-routes.js';
 
 export const metaStartMarker = '<!--app-meta-start-->';
 export const metaEndMarker = '<!--app-meta-end-->';
@@ -106,9 +106,9 @@ export function routeOutputFile(distDir, routePath) {
 
 export async function prerenderStaticRoutes({
   distDir = path.join(rootDir, 'dist'),
-  siteUrl = normalizeSiteUrl(process.env.SITE_URL || process.env.VITE_SITE_URL),
+  siteUrl = requireProductionSiteUrl(process.env.SITE_URL || process.env.VITE_SITE_URL),
 } = {}) {
-  const normalizedSiteUrl = normalizeSiteUrl(siteUrl);
+  const normalizedSiteUrl = requireProductionSiteUrl(siteUrl);
   const baseHtmlPath = path.join(distDir, 'index.html');
   const baseHtml = await fs.promises.readFile(baseHtmlPath, 'utf8');
 

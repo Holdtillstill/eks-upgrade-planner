@@ -55,6 +55,8 @@ metrics:
   auth:
     # Public Helm defaults require a bearer token for /metrics. Use an
     # existingSecret for stable GitOps installs, or set token for local demos.
+    # Setting enabled=false also sets METRICS_ALLOW_UNAUTHENTICATED=true in the
+    # rendered ConfigMap; use that only for private local/demo installs.
     enabled: true
     existingSecret: ""
     tokenKey: token

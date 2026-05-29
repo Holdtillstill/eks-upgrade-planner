@@ -103,7 +103,7 @@ Scanner findings: ${scannerFindings.length}`;
           <Source label={dataFreshness.sourceLabel} url={dataFreshness.sourceUrl}/>
         </div>
         <div className="war-filters product-filters">
-          {(['all', 'at-risk', 'standard'] as const).map((item) => <button type="button" key={item} className={filter === item ? 'active' : ''} onClick={() => setFilter(item)}>{item}</button>)}
+          {(['all', 'at-risk', 'standard'] as const).map((item) => <button type="button" key={item} className={filter === item ? 'active' : ''} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}
         </div>
         <div className="deadline-list">
           {visibleRows.map((row) => <button
@@ -175,17 +175,29 @@ export function VersionsSection({ currentVersion, setCurrentVersion, setRoute }:
     </div>
 
     <div className="product-table-wrap">
-      <table className="product-table">
-        <thead><tr><th>Release</th><th>Gate</th><th>Status</th><th>Release date</th><th>Standard end</th><th>Extended end</th><th>Platform</th><th>Source</th><th>Guide</th></tr></thead>
-        <tbody>{eksVersions.map((version) => <tr key={version.version} className={version.version === currentVersion ? 'selected' : ''}>
-          <td><button type="button" aria-label={`Select EKS ${version.version}`} onClick={() => setCurrentVersion(version.version)}>EKS {version.version}</button></td>
+      <table className="product-table lifecycle-table">
+        <caption>Amazon EKS lifecycle registry with support gates, lifecycle dates, platform versions, source citations, and version guides.</caption>
+        <colgroup>
+          <col className="lifecycle-col-release"/>
+          <col className="lifecycle-col-gate"/>
+          <col className="lifecycle-col-status"/>
+          <col className="lifecycle-col-date"/>
+          <col className="lifecycle-col-date"/>
+          <col className="lifecycle-col-date"/>
+          <col className="lifecycle-col-platform"/>
+          <col className="lifecycle-col-source"/>
+          <col className="lifecycle-col-guide"/>
+        </colgroup>
+        <thead><tr><th scope="col">Release</th><th scope="col">Gate</th><th scope="col">Status</th><th scope="col">Release date</th><th scope="col">Standard end</th><th scope="col">Extended end</th><th scope="col">Platform</th><th scope="col">Source</th><th scope="col">Guide</th></tr></thead>
+        <tbody>{eksVersions.map((version) => <tr key={version.version} className={version.version === currentVersion ? 'selected' : ''} aria-selected={version.version === currentVersion}>
+          <th scope="row"><button type="button" aria-label={`Select EKS ${version.version}`} aria-pressed={version.version === currentVersion} onClick={() => setCurrentVersion(version.version)}>EKS {version.version}</button></th>
           <td><span className={`table-gate gate-${gateForVersion(version)}`}>{gateForVersion(version)}</span></td>
           <td><StatusPill version={version}/></td>
           <td>{version.releaseDate}</td>
           <td>{version.standardSupportEnd}</td>
           <td>{version.extendedSupportEnd}</td>
           <td>{version.latestPlatform ?? 'Check source'}</td>
-          <td><Source label={version.sourceLabel} url={version.sourceUrl}/></td>
+          <td><Source label="EKS lifecycle source" url={version.sourceUrl}/></td>
           <td><a href={versionGuidePath(version.version)} onClick={(event) => { event.preventDefault(); navigate(versionGuidePath(version.version), setRoute); }}>Guide</a></td>
         </tr>)}</tbody>
       </table>
@@ -356,7 +368,7 @@ export function PlannerSection({
         </div>
 
         <div className="segmented">
-          {nodeModelIds.map((item) => <button type="button" key={item} className={nodeModel === item ? 'active' : ''} onClick={() => setNodeModel(item)}>{nodeModelLabels[item]}</button>)}
+          {nodeModelIds.map((item) => <button type="button" key={item} className={nodeModel === item ? 'active' : ''} aria-pressed={nodeModel === item} onClick={() => setNodeModel(item)}>{nodeModelLabels[item]}</button>)}
         </div>
 
         <div className="checklist-grid">

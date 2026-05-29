@@ -34,6 +34,7 @@ describe('ProductShell integration', () => {
     renderProductRoute('/eks/extended-support-cost-calculator');
 
     expect(screen.getByRole('heading', { name: /support-tier scenario ledger/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /bridge scenario/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getAllByText('$17,520').length).toBeGreaterThan(0);
 
     fireEvent.change(screen.getByLabelText('Clusters'), { target: { value: '3' } });
@@ -58,11 +59,22 @@ describe('ProductShell integration', () => {
     renderProductRoute('/eks/upgrade-planner');
 
     expect(screen.getByRole('heading', { name: /release train RFC builder/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /managed node groups/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: /set target to EKS 1\.32/i })).toBeTruthy();
 
     const rfc = screen.getByLabelText('Copyable Jira/RFC Markdown') as HTMLTextAreaElement;
     expect(rfc.value).toContain('Current version: EKS 1.31');
     expect(rfc.value).toContain('Target version: EKS 1.35');
     expect(rfc.value).toContain('Amazon VPC CNI');
+  });
+
+  it('renders lifecycle table semantics and selected release state', () => {
+    renderProductRoute('/eks/versions');
+
+    const table = screen.getByRole('table', { name: /amazon eks lifecycle registry/i });
+    expect(table).toBeTruthy();
+    expect(within(table).getByRole('columnheader', { name: /status/i })).toBeTruthy();
+    expect(within(table).getByRole('rowheader', { name: /eks 1\.31/i })).toBeTruthy();
+    expect(within(table).getByRole('button', { name: /select eks 1\.31/i })).toHaveAttribute('aria-pressed', 'true');
   });
 });

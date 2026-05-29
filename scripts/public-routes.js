@@ -1,6 +1,7 @@
 export const defaultSiteUrl = 'http://localhost:8080';
 export const siteName = 'EKS Upgrade Planner';
 export const socialImagePath = '/favicon.svg';
+const enabledFlags = new Set(['1', 'true', 'yes', 'on']);
 
 export const publicEksVersions = [
   { version: '1.35', releaseDate: '2026-01-27', standardSupportEnd: '2027-03-27', extendedSupportEnd: '2028-03-27', latestPlatform: '1.35-eks-9', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-eks-distro-kubernetes-version-1-35/' },
@@ -351,6 +352,25 @@ export function normalizeSiteUrl(value) {
   url.search = '';
   url.hash = '';
   return url.toString().replace(/\/$/, '');
+}
+
+function envFlagEnabled(value) {
+  return enabledFlags.has(String(value || '').trim().toLowerCase());
+}
+
+export function isLocalSiteUrl(siteUrl) {
+  const { hostname } = new URL(normalizeSiteUrl(siteUrl));
+  const host = hostname.replace(/^\[/, '').replace(/\]$/, '').toLowerCase();
+  return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host);
+}
+
+export function requireProductionSiteUrl(siteUrl, env = process.env) {
+  const normalized = normalizeSiteUrl(siteUrl);
+  const productionGuard = env.SITE_URL_BUILD_MODE === 'production';
+  if (productionGuard && isLocalSiteUrl(normalized) && !envFlagEnabled(env.SITE_URL_ALLOW_LOCALHOST)) {
+    throw new Error('Production builds require SITE_URL to be a public http(s) origin. Set SITE_URL_ALLOW_LOCALHOST=true only for local/demo builds.');
+  }
+  return normalized;
 }
 
 export function absoluteUrl(siteUrl, routePath) {

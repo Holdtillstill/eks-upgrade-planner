@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 import { loadEnv } from 'vite'
 
 const defaultSiteUrl = 'http://localhost:8080'
+const enabledFlags = new Set(['1', 'true', 'yes', 'on'])
 
 function normalizeSiteUrl(value?: string) {
   const url = new URL(value || defaultSiteUrl)
@@ -14,12 +15,28 @@ function normalizeSiteUrl(value?: string) {
   return url.toString().replace(/\/$/, '')
 }
 
+function isLocalSiteUrl(siteUrl: string) {
+  const host = new URL(siteUrl).hostname.replace(/^\[/, '').replace(/\]$/, '').toLowerCase()
+  return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
+}
+
+function requireProductionSiteUrl(siteUrl: string, env: Record<string, string>, mode: string) {
+  if (mode === 'production' && isLocalSiteUrl(siteUrl) && !enabledFlags.has(String(env.SITE_URL_ALLOW_LOCALHOST || process.env.SITE_URL_ALLOW_LOCALHOST || '').trim().toLowerCase())) {
+    throw new Error('Production builds require SITE_URL to be a public http(s) origin. Set SITE_URL_ALLOW_LOCALHOST=true only for local/demo builds.')
+  }
+  return siteUrl
+}
+
 // Keep the MVP deliberately simple: Vite's esbuild transform handles TSX.
 // Avoid React Fast Refresh injection in this environment, which can fail when
 // the refresh preamble is not initialized by the browser harness.
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const siteUrl = normalizeSiteUrl(process.env.SITE_URL || env.SITE_URL || process.env.VITE_SITE_URL || env.VITE_SITE_URL)
+  const siteUrl = requireProductionSiteUrl(
+    normalizeSiteUrl(process.env.SITE_URL || env.SITE_URL || process.env.VITE_SITE_URL || env.VITE_SITE_URL),
+    env,
+    mode,
+  )
 
   return {
     base: '/',
