@@ -16,7 +16,8 @@ Request flow:
 6. Serve immutable hashed Vite assets from `/assets/*`.
 7. Serve prerendered public route HTML with `no-cache`, then let the React app
    mount normally in the browser.
-8. Return root `index.html` for unknown SPA deep links that are not prerendered.
+8. Return `404` for unknown extensionless routes instead of serving the app
+   shell as a soft 404.
 
 Vite now builds with `base: "/"` because relative asset URLs break on public
 deep links like `/eks/versions`.
@@ -28,8 +29,10 @@ deep links like `/eks/versions`.
 - `/metrics`: Prometheus metrics.
 - Static files from `dist/`.
 - Prerendered public route HTML from route directory `index.html` files.
-- SPA fallback for extensionless `GET` and `HEAD` requests not matched by a
-  prerendered file.
+- SPA fallback for known app/prerendered extensionless `GET` and `HEAD`
+  requests when a route file is not present.
+- Unknown extensionless routes return `404` with `noindex` HTML for browser
+  requests or JSON for API-style requests.
 
 ## Security and HTTP Behavior
 
@@ -61,14 +64,16 @@ Common environment variables:
 | `HOST` | Bind address | `0.0.0.0` |
 | `PORT` | HTTP port | `8080` |
 | `DIST_DIR` | Built Vite asset directory | `dist` |
-| `SITE_URL` / `VITE_SITE_URL` | Public origin used for canonical, OpenGraph, sitemap, and robots metadata | `http://localhost:8080` |
+| `SITE_URL` / `VITE_SITE_URL` | Public origin used for canonical, OpenGraph, sitemap, and robots metadata. Required for production builds. | local dev defaults to `http://localhost:8080` |
+| `SITE_URL_ALLOW_LOCALHOST` | Permit localhost/127 loopback `SITE_URL` during production build/prerender for local/demo builds only | unset |
 | `APP_VERSION` | Build info metric label | `package.json` version |
 | `SOURCE_VERSION` / `GIT_SHA` / `COMMIT_SHA` | Build commit label | `unknown` |
 | `BUILD_TIME` | Build timestamp label | `unknown` |
 | `ENABLE_HSTS` | Disable HSTS when set to `false` | enabled |
 | `ENABLE_DESIGN_EXPLORATIONS` | Server-side route gate for `/1` through `/10`; production disables them regardless | disabled in production |
 | `VITE_ENABLE_DESIGN_EXPLORATIONS` | Build-time client route/UI gate for `/1` through `/10` in development builds | enabled outside production |
-| `METRICS_BEARER_TOKEN` | Optional bearer token required for `/metrics` | unset |
+| `METRICS_BEARER_TOKEN` | Bearer token required for `/metrics` when `NODE_ENV=production` | unset |
+| `METRICS_ALLOW_UNAUTHENTICATED` | Explicit opt-out for unauthenticated `/metrics` in local/demo production runs | unset |
 | `OTEL_SERVICE_NAME` | OpenTelemetry service name | `eks-upgrade-planner` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP/HTTP collector base URL | unset |
 | `OTEL_LOGS_EXPORTER` | Set `otlp` to emit OTLP logs | unset |
@@ -81,7 +86,9 @@ generate:public-metadata` uses `SITE_URL` to write `public/robots.txt` and
 `public/sitemap.xml` for the primary app routes, EKS version pages, and add-on
 compatibility pages. `npm run build` runs that generator automatically, then
 `npm run prerender` writes route-specific static HTML files for the same public
-route list.
+route list. Production build and prerender steps reject `localhost`, `127.0.0.1`,
+and `[::1]` `SITE_URL` values unless `SITE_URL_ALLOW_LOCALHOST=true` is set for
+a local/demo build.
 
 The prerendered files include route-specific canonical, OpenGraph, Twitter, and
 description tags plus crawlable body copy for `/`, `/app`, `/eks/versions`,
@@ -108,8 +115,10 @@ can pass release provenance through `env.appVersion`, `env.sourceVersion`, and
 `env.buildTime`; these populate `/metrics` build info and startup logs.
 
 For public ingress, keep `/metrics` off the public host and require token auth
-unless scraping is strictly private. The chart defaults to
-`ingress.blockMetricsPath=true` and `metrics.auth.enabled=true`; provide
+unless scraping is strictly private. Direct Node and Docker production runs fail
+fast without `METRICS_BEARER_TOKEN` unless
+`METRICS_ALLOW_UNAUTHENTICATED=true` is set for local/demo use. The chart
+defaults to `ingress.blockMetricsPath=true` and `metrics.auth.enabled=true`; provide
 `metrics.auth.existingSecret` for a stable production token. If no existing
 secret or explicit token is set, the chart creates a generated metrics token for
 the release. If your ingress controller does not support nginx snippets, use an

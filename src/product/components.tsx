@@ -128,6 +128,7 @@ export function ScenarioLedger({ rows, activeId, setActiveId }: { rows: Scenario
       type="button"
       key={row.id}
       className={activeId === row.id ? 'active' : ''}
+      aria-pressed={activeId === row.id}
       aria-label={`${row.label} scenario, ${formatCurrency(row.cost.extraTotal)} exposure over ${row.months} months`}
       onClick={() => setActiveId(row.id)}
     >

@@ -1,6 +1,22 @@
 import { monitorEventLoopDelay, performance } from 'node:perf_hooks';
 
 const DEFAULT_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
+const ENABLED_FLAGS = new Set(['1', 'true', 'yes', 'on']);
+
+function envFlagEnabled(value) {
+  return ENABLED_FLAGS.has(String(value || '').trim().toLowerCase());
+}
+
+export function metricsAuthRequired(env = process.env) {
+  if (env.METRICS_BEARER_TOKEN) return true;
+  if (env.NODE_ENV !== 'production') return false;
+  return !envFlagEnabled(env.METRICS_ALLOW_UNAUTHENTICATED);
+}
+
+export function validateMetricsAuthConfig(env = process.env) {
+  if (!metricsAuthRequired(env) || env.METRICS_BEARER_TOKEN) return;
+  throw new Error('METRICS_BEARER_TOKEN is required when NODE_ENV=production. Set METRICS_ALLOW_UNAUTHENTICATED=true only for local/demo deployments.');
+}
 
 function labelValue(value) {
   return String(value).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/"/g, '\\"');

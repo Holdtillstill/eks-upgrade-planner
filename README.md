@@ -30,7 +30,7 @@ Build the Vite app and serve it with the production server:
 
 ```bash
 SITE_URL=https://planner.example.com npm run build
-PORT=8080 NODE_ENV=production npm start
+PORT=8080 NODE_ENV=production METRICS_BEARER_TOKEN="$(openssl rand -hex 24)" npm start
 ```
 
 Open: http://127.0.0.1:8080/app
@@ -42,11 +42,14 @@ Operational endpoints:
 - `GET /metrics` - Prometheus text metrics for process/runtime and HTTP traffic.
 - Public deep links such as `/eks/1-35-upgrade-guide` are served from
   prerendered `dist/**/index.html` files, then the React app mounts normally.
-- Unknown extensionless app routes still fall back to `dist/index.html` for SPA
-  behavior.
+- Unknown extensionless routes return a real `404` response. Browser HTML
+  requests receive a `noindex` page; API-style requests receive JSON.
 
 `SITE_URL` controls canonical, OpenGraph, `robots.txt`, and `sitemap.xml`
-metadata. If it is unset, local builds default to `http://localhost:8080`.
+metadata. Production builds require `SITE_URL` to be a public `http` or `https`
+origin; `localhost` and `127.0.0.1` are rejected unless
+`SITE_URL_ALLOW_LOCALHOST=true` is set for a local/demo build. If `SITE_URL` is
+unset, local dev commands default to `http://localhost:8080`.
 `npm run generate:public-metadata` regenerates `public/robots.txt` and
 `public/sitemap.xml`; `npm run build` runs it automatically before Vite and runs
 `npm run prerender` afterward. The prerender step writes route-specific static
@@ -60,9 +63,10 @@ them with `VITE_ENABLE_DESIGN_EXPLORATIONS=false`.
 The server logs JSON to stdout/stderr for container log collection. Set
 `OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318` to emit OTLP/HTTP traces.
 Set `OTEL_LOGS_EXPORTER=otlp` as well to emit application logs through the
-OpenTelemetry Collector to Loki. If exposing the app publicly, keep `/metrics`
-internal or set `METRICS_BEARER_TOKEN` and configure Prometheus to send the
-bearer token.
+OpenTelemetry Collector to Loki. When `NODE_ENV=production`, direct Node or
+Docker runs require `METRICS_BEARER_TOKEN` for `/metrics`. Set
+`METRICS_ALLOW_UNAUTHENTICATED=true` only for local/demo production runs where
+unauthenticated metrics are acceptable.
 
 ## Docker
 
@@ -73,8 +77,13 @@ docker build \
   --build-arg SOURCE_VERSION="$(git rev-parse --short HEAD)" \
   --build-arg BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   -t eks-upgrade-planner:local .
-docker run --rm -p 8080:8080 eks-upgrade-planner:local
+docker run --rm -p 8080:8080 \
+  -e METRICS_BEARER_TOKEN="$(openssl rand -hex 24)" \
+  eks-upgrade-planner:local
 ```
+
+For direct Docker runs in production, pass `-e METRICS_BEARER_TOKEN=...` or set
+`-e METRICS_ALLOW_UNAUTHENTICATED=true` for local/demo use.
 
 ## Kubernetes and Helm
 
@@ -119,13 +128,14 @@ Local/demo values live in `deploy/observability`. See
 
 ```bash
 npm test
-npm run build
+SITE_URL=https://planner.example.com npm run build
 npm run lint
 npm run smoke:local
 ```
 
 Run `npm run smoke:local` while the production server is already listening on
-`http://127.0.0.1:8080`, or set `SMOKE_BASE_URL`.
+`http://127.0.0.1:8080`, or set `SMOKE_BASE_URL`. If `/metrics` is token
+protected, also export `SMOKE_METRICS_BEARER_TOKEN` or `METRICS_BEARER_TOKEN`.
 
 ## Data and trust model
 

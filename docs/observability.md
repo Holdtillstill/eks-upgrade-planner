@@ -24,7 +24,7 @@ Route labels are normalized to avoid high cardinality:
 - `/addons/:addon/eks-compatibility`
 - `/assets/*`
 - `/:design` when design explorations are enabled outside production
-- `/spa-fallback`
+- `/not-found`
 
 Key metrics:
 
@@ -52,8 +52,8 @@ topk(10, sum by (route) (rate(http_requests_total[10m])))
 Run the production server:
 
 ```bash
-npm run build
-PORT=8080 NODE_ENV=production npm start
+SITE_URL=https://planner.example.com npm run build
+PORT=8080 NODE_ENV=production METRICS_BEARER_TOKEN=dev-secret npm start
 ```
 
 Check endpoints:
@@ -61,18 +61,19 @@ Check endpoints:
 ```bash
 curl -fsS http://127.0.0.1:8080/healthz
 curl -fsS http://127.0.0.1:8080/readyz
-curl -fsS http://127.0.0.1:8080/metrics | grep http_requests_total
+curl -H 'Authorization: Bearer dev-secret' -fsS http://127.0.0.1:8080/metrics | grep http_requests_total
 curl -I http://127.0.0.1:8080/eks/1-35-upgrade-guide
 ```
 
 Helm production values enable `/metrics` bearer-token auth by default. Local
-Node runs leave `METRICS_BEARER_TOKEN` unset unless you choose to test auth
-explicitly.
+Node dev runs can leave `METRICS_BEARER_TOKEN` unset. Direct production Node or
+Docker runs require `METRICS_BEARER_TOKEN` unless
+`METRICS_ALLOW_UNAUTHENTICATED=true` is set for local/demo use.
 
 Run the smoke script against an already running server:
 
 ```bash
-npm run smoke:local
+SMOKE_METRICS_BEARER_TOKEN=dev-secret npm run smoke:local
 ```
 
 ## Local Kubernetes Stack

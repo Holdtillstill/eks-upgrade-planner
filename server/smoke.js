@@ -6,13 +6,17 @@ const checks = [
   { path: '/readyz', expect: 200, contains: '"status":"ready"' },
   { path: '/metrics', expect: 200, contains: 'http_requests_total', token: metricsToken },
   { path: '/eks/1-35-upgrade-guide', expect: 200, contains: 'data-prerendered-route="/eks/1-35-upgrade-guide"' },
+  { path: '/unknown-extensionless-route', expect: 404, contains: '"status":"not_found"', headers: { accept: 'application/json' } },
 ];
 
 let failures = 0;
 
 for (const check of checks) {
   const url = new URL(check.path, baseUrl);
-  const headers = check.token ? { authorization: `Bearer ${check.token}` } : undefined;
+  const headers = {
+    ...(check.headers || {}),
+    ...(check.token ? { authorization: `Bearer ${check.token}` } : {}),
+  };
   const response = await fetch(url, { headers });
   const body = await response.text();
   const passed = response.status === check.expect && body.includes(check.contains);

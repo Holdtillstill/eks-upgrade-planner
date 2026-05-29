@@ -3,8 +3,10 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 
-ARG SITE_URL=http://localhost:8080
-ENV SITE_URL=${SITE_URL}
+ARG SITE_URL
+ARG SITE_URL_ALLOW_LOCALHOST
+ENV SITE_URL=${SITE_URL} \
+    SITE_URL_ALLOW_LOCALHOST=${SITE_URL_ALLOW_LOCALHOST}
 
 COPY package.json package-lock.json ./
 RUN npm ci

@@ -6,7 +6,8 @@ import { addons } from '../src/data/addons.ts';
 import { eksVersions } from '../src/data/versions.ts';
 import { addonCompatibilityPath } from '../src/lib/addonLookup.ts';
 import { versionGuidePath } from '../src/lib/routes.ts';
-import { publicAddons, publicEksVersions, publicRoutes } from './public-routes.js';
+import { KNOWN_HTML_ROUTES } from '../server/routes.js';
+import { isLocalSiteUrl, publicAddons, publicEksVersions, publicRoutes, requireProductionSiteUrl } from './public-routes.js';
 import { renderRouteHtml, renderSeoBody, routeOutputFile } from './prerender-static.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -61,6 +62,7 @@ describe('public SEO routes', () => {
     expect(publicRoutes.map((route) => route.path)).toEqual(expectedRoutes);
     expect(publicEksVersions).toEqual(eksVersions);
     expect(publicAddons).toEqual(addons);
+    expect([...KNOWN_HTML_ROUTES].sort()).toEqual(expectedRoutes.toSorted());
   });
 
   it('has route-specific metadata and crawlable body copy for every route', () => {
@@ -112,6 +114,16 @@ describe('public SEO routes', () => {
     expect(html).not.toMatch(/\sstyle=/i);
     expect(html).not.toMatch(/<style\b/i);
     expect(html).not.toContain("'unsafe-inline'");
+  });
+
+  it('rejects localhost SITE_URL for production builds unless explicitly allowed', () => {
+    expect(isLocalSiteUrl('http://localhost:8080')).toBe(true);
+    expect(isLocalSiteUrl('http://127.0.0.1:8080')).toBe(true);
+    expect(isLocalSiteUrl('http://[::1]:8080')).toBe(true);
+    expect(isLocalSiteUrl('https://planner.example.com')).toBe(false);
+    expect(() => requireProductionSiteUrl('http://localhost:8080', { SITE_URL_BUILD_MODE: 'production' })).toThrow(/Production builds require SITE_URL/);
+    expect(requireProductionSiteUrl('http://localhost:8080', { SITE_URL_BUILD_MODE: 'production', SITE_URL_ALLOW_LOCALHOST: 'true' })).toBe('http://localhost:8080');
+    expect(requireProductionSiteUrl('https://planner.example.com', { SITE_URL_BUILD_MODE: 'production' })).toBe('https://planner.example.com');
   });
 });
 

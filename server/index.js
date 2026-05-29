@@ -4,9 +4,9 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
-import { createMetrics } from './metrics.js';
+import { createMetrics, metricsAuthRequired, validateMetricsAuthConfig } from './metrics.js';
 import { createLogger, createTracer } from './observability.js';
-import { normalizeRoute, shouldServeSpaFallback } from './routes.js';
+import { normalizeRoute, shouldSendHtmlNotFound, shouldServeSpaFallback } from './routes.js';
 import { setSecurityHeaders } from './security.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +24,12 @@ const config = {
 };
 
 const logger = createLogger({ serviceName: config.serviceName, version: config.version });
+try {
+  validateMetricsAuthConfig(process.env);
+} catch (error) {
+  logger.error('invalid metrics configuration', { error: error.message });
+  process.exit(1);
+}
 const tracer = createTracer({ logger, serviceName: config.serviceName, version: config.version });
 const metrics = createMetrics({ version: config.version, commit: config.commit, buildTime: config.buildTime });
 
@@ -58,6 +64,52 @@ function sendJson(req, res, statusCode, payload) {
   });
   if (req.method === 'HEAD') res.end();
   else res.end(body);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sendHtml(req, res, statusCode, body, headers = {}) {
+  res.writeHead(statusCode, {
+    'content-type': 'text/html; charset=utf-8',
+    'cache-control': 'no-store',
+    'content-length': Buffer.byteLength(body),
+    ...headers,
+  });
+  if (req.method === 'HEAD') res.end();
+  else res.end(body);
+}
+
+function sendNotFound(req, res, pathname) {
+  res.setHeader('x-robots-tag', 'noindex, nofollow');
+  if (!shouldSendHtmlNotFound(req.headers.accept || '')) {
+    sendJson(req, res, 404, { status: 'not_found' });
+    return;
+  }
+
+  const safePath = escapeHtml(pathname || '/');
+  sendHtml(req, res, 404, `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Not Found | EKS Upgrade Planner</title>
+  </head>
+  <body>
+    <main>
+      <h1>Not Found</h1>
+      <p>No EKS Upgrade Planner route exists for ${safePath}.</p>
+      <p><a href="/app">Open the planner</a></p>
+    </main>
+  </body>
+</html>`);
 }
 
 function safeStaticPath(pathname) {
@@ -153,8 +205,11 @@ function safeRequestUrl(req) {
 
 function metricsAuthorized(req) {
   const token = process.env.METRICS_BEARER_TOKEN;
-  if (!token) return true;
-  return req.headers.authorization === `Bearer ${token}`;
+  if (!token) return !metricsAuthRequired(process.env);
+
+  const expected = Buffer.from(`Bearer ${token}`);
+  const actual = Buffer.from(String(req.headers.authorization || ''));
+  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 }
 
 async function handleRequest(req, res) {
@@ -202,7 +257,6 @@ async function handleRequest(req, res) {
       const ready = await distReady();
       sendJson(req, res, ready ? 200 : 503, {
         status: ready ? 'ready' : 'not_ready',
-        distDir,
       });
       return;
     }
@@ -236,11 +290,10 @@ async function handleRequest(req, res) {
     }
 
     if (shouldServeSpaFallback(req.method || 'GET', url.pathname, String(req.headers.accept || ''))) {
-      await serveFile(req, res, path.join(distDir, 'index.html'));
-      return;
+      if (await serveFile(req, res, path.join(distDir, 'index.html'))) return;
     }
 
-    sendJson(req, res, 404, { status: 'not_found' });
+    sendNotFound(req, res, url.pathname);
   } catch (error) {
     logger.error('request failed', {
       requestId,
