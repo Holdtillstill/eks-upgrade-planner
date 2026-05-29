@@ -1,4 +1,5 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vitest/config'
+import { loadEnv } from 'vite'
 
 const defaultSiteUrl = 'http://localhost:8080'
 
@@ -28,5 +29,9 @@ export default defineConfig(({ mode }) => {
         return html.replaceAll('__SITE_URL__', siteUrl)
       },
     }],
+    test: {
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.ts',
+    },
   }
 })
