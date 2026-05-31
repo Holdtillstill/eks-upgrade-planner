@@ -35,7 +35,7 @@ jobs:
           SITE_URL_ALLOW_LOCALHOST=true npm run build
 
       - name: Open data refresh pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: data/eks-live-refresh
           delete-branch: true
