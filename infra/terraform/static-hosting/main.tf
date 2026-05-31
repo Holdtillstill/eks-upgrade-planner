@@ -13,29 +13,7 @@ locals {
 
   content_security_policy = "default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self'; object-src 'none'; script-src 'self'; style-src 'self'"
 
-  clean_url_rewrite_function = <<-JS
-function handler(event) {
-  var request = event.request;
-  var uri = request.uri || '/';
-
-  if (uri === '/') {
-    request.uri = '/index.html';
-    return request;
-  }
-
-  if (uri.endsWith('/')) {
-    request.uri = uri + 'index.html';
-    return request;
-  }
-
-  var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
-  if (lastSegment.indexOf('.') === -1) {
-    request.uri = uri + '/index.html';
-  }
-
-  return request;
-}
-JS
+  clean_url_rewrite_function = file("${path.module}/../../cloudfront/clean-url-rewrite.js")
 }
 
 data "aws_cloudfront_cache_policy" "caching_optimized" {

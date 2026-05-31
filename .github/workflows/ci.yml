@@ -42,3 +42,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Validate static hosting output
+        run: npm run validate:static-hosting
