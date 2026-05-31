@@ -1,7 +1,11 @@
 # EKS Upgrade Planner
 
+[![CI](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml)
+
 A public, static-heavy web tool for planning Amazon EKS upgrades before they
 become extended-support bills or risky change windows.
+
+![EKS Upgrade Planner overview](docs/assets/eks-upgrade-planner-overview.png)
 
 ## What it includes
 
@@ -15,7 +19,7 @@ become extended-support bills or risky change windows.
   caching, prerendered public route HTML, SPA deep-link fallback, and optional
   OTLP traces/logs.
 
-## Local development
+## Quickstart
 
 ```bash
 npm install --include=dev
@@ -129,6 +133,7 @@ Local/demo values live in `deploy/observability`. See
 ```bash
 npm test
 SITE_URL=https://planner.example.com npm run build
+npm run validate:static-hosting
 npm run lint
 npm run smoke:local
 ```
@@ -136,6 +141,8 @@ npm run smoke:local
 Run `npm run smoke:local` while the production server is already listening on
 `http://127.0.0.1:8080`, or set `SMOKE_BASE_URL`. If `/metrics` is token
 protected, also export `SMOKE_METRICS_BEARER_TOKEN` or `METRICS_BEARER_TOKEN`.
+See `docs/smoke-test-checklist.md` for the pre-launch browser and HTTP smoke
+checklist.
 
 ## GitHub, CI, and Static Hosting
 
@@ -150,11 +157,13 @@ This repo is structured for a hybrid ownership model:
 GitHub workflows:
 
 - `.github/workflows/ci.yml` runs data freshness checks, tests, lint,
-  typecheck, and production build on pushes and pull requests.
+  typecheck, production build, and static-host validation on pushes and pull
+  requests.
 - `.github/workflows/static-deploy.yml` deploys `dist/` to S3 and invalidates
   CloudFront using GitHub OIDC. It expects repository variables
   `AWS_ROLE_TO_ASSUME`, `AWS_REGION`, `STATIC_SITE_BUCKET`,
-  `CLOUDFRONT_DISTRIBUTION_ID`, and `SITE_URL`.
+  `CLOUDFRONT_DISTRIBUTION_ID`, and `SITE_URL`. It is manual until AWS
+  bootstrap resources and repository variables exist.
 - `.github/workflows/docker-publish.yml` publishes tagged Docker images to
   GHCR.
 - `.github/workflows/eks-preview.yml` builds a preview image and deploys the
@@ -176,6 +185,9 @@ The static build also writes `dist/404.html` and `dist/_headers`. `404.html`
 keeps unknown extensionless routes as real noindex 404s when CloudFront maps S3
 `403`/`404` misses to it. `_headers` gives Cloudflare Pages the same CSP and
 security posture as the Node server.
+
+See `docs/deployment.md` for deployment ownership, preview TTL, and Cloudflare
+mirror notes. See `docs/cost-notes.md` for the expected AWS cost posture.
 
 ## Data and trust model
 
@@ -212,3 +224,7 @@ changes.
   should appear in the sitemap and static HTML output.
 
 More production notes are in `docs/production-readiness.md`.
+
+## License
+
+MIT. See `LICENSE`.
