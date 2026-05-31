@@ -1,7 +1,8 @@
-site_domain        = "planner.example.com"
-additional_aliases = ["www.planner.example.com"]
+site_domain        = "eks-upgrade-planner.bozhi.dev"
+additional_aliases = []
 hosted_zone_id     = "<ROUTE53_HOSTED_ZONE_ID>"
 aws_region         = "us-east-1"
+bucket_name        = "eks-upgrade-planner.bozhi.dev"
 
 tags = {
   Owner       = "platform"
