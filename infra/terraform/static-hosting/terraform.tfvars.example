@@ -1,0 +1,9 @@
+site_domain        = "planner.example.com"
+additional_aliases = ["www.planner.example.com"]
+hosted_zone_id     = "<ROUTE53_HOSTED_ZONE_ID>"
+aws_region         = "us-east-1"
+
+tags = {
+  Owner       = "platform"
+  Environment = "prod"
+}

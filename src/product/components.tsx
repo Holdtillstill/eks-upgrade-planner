@@ -3,7 +3,8 @@ import { addons } from '../data/addons';
 import { deprecations } from '../data/deprecations';
 import { dataFreshness, eksVersions, type EksVersion } from '../data/versions';
 import { eksPricing } from '../data/pricing';
-import { formatCurrency, type calculateEksSupportExposure } from '../lib/planner';
+import { type calculateEksSupportExposure } from '../lib/planner';
+import { supportExposureLabel } from '../lib/ui';
 import { navigate } from '../lib/navigation';
 import { productTabs, versionGuidePath, type AppRoute, type ProductTab } from '../lib/routes';
 import { CopyButton, Source } from '../components/shared';
@@ -22,14 +23,14 @@ function uniqueSources() {
 }
 
 const productNavMeta: Record<ProductTab, { code: string; label: string; detail: string }> = {
-  overview: { code: '00', label: 'Overview', detail: 'Status board' },
+  overview: { code: '00', label: 'Overview', detail: 'Fleet scope' },
   versions: { code: '01', label: 'Lifecycle', detail: 'Version gates' },
-  cost: { code: '02', label: 'Cost', detail: 'Scenario ledger' },
-  planner: { code: '03', label: 'Planner', detail: 'Release train' },
-  scanner: { code: '04', label: 'Scanner', detail: 'Local terminal' },
-  guides: { code: '05', label: 'Guides', detail: 'Source briefings' },
-  addons: { code: '06', label: 'Add-ons', detail: 'Preflight gates' },
-  evidence: { code: '07', label: 'Evidence', detail: 'Review packet' },
+  cost: { code: '02', label: 'Cost', detail: 'Fees & risk' },
+  planner: { code: '03', label: 'Planner', detail: 'Change plan' },
+  scanner: { code: '04', label: 'Scanner', detail: 'Static scan' },
+  guides: { code: '05', label: 'Guides', detail: 'Source notes' },
+  addons: { code: '06', label: 'Add-ons', detail: 'Checklists' },
+  evidence: { code: '07', label: 'Evidence', detail: 'Change packet' },
 };
 
 export function SourceRail({ currentVersion, scannerFindings }: { currentVersion: string; scannerFindings: number }) {
@@ -49,7 +50,7 @@ export function SourceRail({ currentVersion, scannerFindings }: { currentVersion
       <span className="eyebrow">Trust Model</span>
       <p>Planner inputs and pasted manifests run locally in the browser. No AWS APIs, product accounts, credentials, cluster discovery, or manifest upload are used or stored.</p>
       <p>Production request logs may include path, IP address, and user agent for operations and abuse prevention.</p>
-      <p>Cost values are estimates for the EKS control-plane support tier only.</p>
+      <p>Cost values are estimates for the EKS control-plane support tier only. Releases past extended support are flagged as automatic-upgrade risk instead of zero-cost choices.</p>
     </div>
     <div className="source-list">
       <span className="eyebrow">Sources</span>
@@ -87,8 +88,8 @@ export function ProductField({ label, children }: { label: string; children: Rea
   </label>;
 }
 
-export function VersionSelect({ value, onChange, versions = eksVersions }: { value: string; onChange: (value: string) => void; versions?: EksVersion[] }) {
-  return <select value={value} onChange={(event) => onChange(event.target.value)}>
+export function VersionSelect({ value, onChange, versions = eksVersions, ariaLabel }: { value: string; onChange: (value: string) => void; versions?: EksVersion[]; ariaLabel?: string }) {
+  return <select value={value} aria-label={ariaLabel} onChange={(event) => onChange(event.target.value)}>
     {versions.map((version) => <option key={version.version} value={version.version}>EKS {version.version}</option>)}
   </select>;
 }
@@ -122,6 +123,18 @@ export type ScenarioRow = {
   cost: ReturnType<typeof calculateEksSupportExposure>;
 };
 
+function scenarioPrimaryLabel(row: ScenarioRow) {
+  if (row.cost.isPastExtendedSupport) return 'Past support';
+  if (row.cost.postExtendedSupportDays > 0) return `${row.cost.postExtendedSupportDays}d unsupported`;
+  return supportExposureLabel(row.cost);
+}
+
+function scenarioSecondaryLabel(row: ScenarioRow) {
+  if (row.cost.isPastExtendedSupport) return 'Automatic-upgrade risk';
+  if (row.cost.postExtendedSupportDays > 0) return `${supportExposureLabel(row.cost)} remaining fees`;
+  return 'Remaining support fees';
+}
+
 export function ScenarioLedger({ rows, activeId, setActiveId }: { rows: ScenarioRow[]; activeId: ScenarioId; setActiveId: (id: ScenarioId) => void }) {
   return <div className="scenario-ledger" aria-label="Support cost scenarios">
     {rows.map((row) => <button
@@ -129,12 +142,13 @@ export function ScenarioLedger({ rows, activeId, setActiveId }: { rows: Scenario
       key={row.id}
       className={activeId === row.id ? 'active' : ''}
       aria-pressed={activeId === row.id}
-      aria-label={`${row.label} scenario, ${formatCurrency(row.cost.extraTotal)} exposure over ${row.months} months`}
       onClick={() => setActiveId(row.id)}
     >
       <span>{row.label}</span>
-      <strong>{formatCurrency(row.cost.extraTotal)}</strong>
-      <em>{row.months} mo · {row.note}</em>
+      <strong className={row.cost.postExtendedSupportDays > 0 || row.cost.isPastExtendedSupport ? 'risk-headline' : ''}>{scenarioPrimaryLabel(row)}</strong>
+      <em>{scenarioSecondaryLabel(row)}</em>
+      <em>{row.months} mo window · {row.note}</em>
+      <span className="sr-only">Select {row.label} scenario.</span>
     </button>)}
   </div>;
 }

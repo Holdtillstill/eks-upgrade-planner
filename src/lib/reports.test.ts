@@ -7,7 +7,7 @@ describe('report helpers', () => {
     expect(guide.hops[0]).toBe('1.31');
     expect(guide.markdown).toContain('# EKS 1.31 upgrade guide');
     expect(guide.markdown).toContain('Standard support ends: 2025-11-26');
-    expect(guide.markdown).toContain('https://endoflife.date/amazon-eks');
+    expect(guide.markdown).toContain('https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html');
     expect(guide.markdown).toContain('Deprecated API checks');
   });
 
@@ -15,8 +15,12 @@ describe('report helpers', () => {
     const report = generateCostReport('1.35', 2, 3, new Date('2026-05-29T12:00:00Z'));
     expect(report).toContain('Monthly rate delta if extended support is reached: $730');
     expect(report).toContain('Billable extended-support days in modeled window: 0');
-    expect(report).toContain('Modeled support-tier exposure: $0');
+    expect(report).toContain('Modeled remaining support fees: $0');
     expect(report).toContain('Worker nodes, Fargate, EBS');
+
+    const expiredReport = generateCostReport('1.29', 2, 3, new Date('2026-05-29T12:00:00Z'));
+    expect(expiredReport).toContain('Modeled remaining support fees: Not applicable - release is past extended support');
+    expect(expiredReport).toContain('AWS can automatically upgrade clusters after the end of extended support');
   });
 
   it('generates planner and evidence markdown from shared inputs', () => {
@@ -39,7 +43,7 @@ describe('report helpers', () => {
     expect(planner).toContain('line 1');
 
     const evidence = generateEvidenceReport({ ...input, evidenceVersion: 'test' });
-    expect(evidence).toContain('# EKS evidence pack');
+    expect(evidence).toContain('# EKS production change packet');
     expect(evidence).toContain('Explicit limitations');
     expect(evidence).toContain('does not call AWS APIs');
   });

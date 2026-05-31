@@ -1,6 +1,6 @@
 export const eksPricing = {
   currency: 'USD',
-  hoursPerMonth: 730,
+  hoursPerMonth: 730, // AWS monthly planning convention: 365 days x 24 hours / 12 months.
   standardPerClusterHour: 0.10,
   extendedPerClusterHour: 0.60,
   sourceLabel: 'Amazon EKS pricing',

@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Environment and local-only secrets
+.env
+.env.*
+!.env.example
+
+# Local reports and generated artifacts
+coverage
+.nyc_output
+chrome-lighthouse-results*.json
+lighthouse-*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +33,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Terraform local state
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log

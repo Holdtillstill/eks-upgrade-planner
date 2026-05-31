@@ -4,14 +4,14 @@ export const socialImagePath = '/favicon.svg';
 const enabledFlags = new Set(['1', 'true', 'yes', 'on']);
 
 export const publicEksVersions = [
-  { version: '1.35', releaseDate: '2026-01-27', standardSupportEnd: '2027-03-27', extendedSupportEnd: '2028-03-27', latestPlatform: '1.35-eks-9', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-eks-distro-kubernetes-version-1-35/' },
-  { version: '1.34', releaseDate: '2025-10-02', standardSupportEnd: '2026-12-02', extendedSupportEnd: '2027-12-02', latestPlatform: '1.34-eks-19', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-eks-distro-kubernetes-version-1-34/' },
-  { version: '1.33', releaseDate: '2025-05-29', standardSupportEnd: '2026-07-29', extendedSupportEnd: '2027-07-29', latestPlatform: '1.33-eks-33', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks' },
-  { version: '1.32', releaseDate: '2025-01-23', standardSupportEnd: '2026-03-23', extendedSupportEnd: '2027-03-23', latestPlatform: '1.32-eks-40', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks' },
-  { version: '1.31', releaseDate: '2024-09-26', standardSupportEnd: '2025-11-26', extendedSupportEnd: '2026-11-26', latestPlatform: '1.31-eks-56', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2024/09/amazon-eks-distro-kubernetes-version-1-31/' },
-  { version: '1.30', releaseDate: '2024-05-23', standardSupportEnd: '2025-07-23', extendedSupportEnd: '2026-07-23', latestPlatform: '1.30-eks-64', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2024/05/amazon-eks-distro-kubernetes-version-1-30/' },
-  { version: '1.29', releaseDate: '2024-01-23', standardSupportEnd: '2025-03-23', extendedSupportEnd: '2026-03-23', latestPlatform: '1.29-eks-66', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks' },
-  { version: '1.28', releaseDate: '2023-09-26', standardSupportEnd: '2024-11-26', extendedSupportEnd: '2025-11-26', latestPlatform: '1.28-eks-63', sourceLabel: 'endoflife.date Amazon EKS API / AWS EKS docs', sourceUrl: 'https://endoflife.date/amazon-eks' },
+  { version: '1.35', releaseDate: '2026-01-27', standardSupportEnd: '2027-03-27', extendedSupportEnd: '2028-03-27', latestPlatform: '1.35-eks-13', sourceLabel: 'AWS EKS Kubernetes version lifecycle', sourceUrl: 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2026/01/amazon-eks-distro-kubernetes-version-1-35/' },
+  { version: '1.34', releaseDate: '2025-10-02', standardSupportEnd: '2026-12-02', extendedSupportEnd: '2027-12-02', latestPlatform: '1.34-eks-23', sourceLabel: 'AWS EKS Kubernetes version lifecycle', sourceUrl: 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-eks-distro-kubernetes-version-1-34/' },
+  { version: '1.33', releaseDate: '2025-05-29', standardSupportEnd: '2026-07-29', extendedSupportEnd: '2027-07-29', latestPlatform: '1.33-eks-37', sourceLabel: 'AWS EKS Kubernetes version lifecycle', sourceUrl: 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html' },
+  { version: '1.32', releaseDate: '2025-01-23', standardSupportEnd: '2026-03-23', extendedSupportEnd: '2027-03-23', latestPlatform: '1.32-eks-44', sourceLabel: 'AWS EKS Kubernetes version lifecycle', sourceUrl: 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html' },
+  { version: '1.31', releaseDate: '2024-09-26', standardSupportEnd: '2025-11-26', extendedSupportEnd: '2026-11-26', latestPlatform: '1.31-eks-60', sourceLabel: 'AWS EKS Kubernetes version lifecycle', sourceUrl: 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2024/09/amazon-eks-distro-kubernetes-version-1-31/' },
+  { version: '1.30', releaseDate: '2024-05-23', standardSupportEnd: '2025-07-23', extendedSupportEnd: '2026-07-23', latestPlatform: '1.30-eks-68', sourceLabel: 'AWS EKS Kubernetes version lifecycle', sourceUrl: 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html', releaseUrl: 'https://aws.amazon.com/about-aws/whats-new/2024/05/amazon-eks-distro-kubernetes-version-1-30/' },
+  { version: '1.29', releaseDate: '2024-01-23', standardSupportEnd: '2025-03-23', extendedSupportEnd: '2026-03-23', latestPlatform: '1.29-eks-66', sourceLabel: 'endoflife.date Amazon EKS lifecycle archive', sourceUrl: 'https://endoflife.date/amazon-eks' },
+  { version: '1.28', releaseDate: '2023-09-26', standardSupportEnd: '2024-11-26', extendedSupportEnd: '2025-11-26', latestPlatform: '1.28-eks-63', sourceLabel: 'endoflife.date Amazon EKS lifecycle archive', sourceUrl: 'https://endoflife.date/amazon-eks' },
 ];
 
 export const publicAddons = [
@@ -67,7 +67,7 @@ function featureSections() {
       items: [
         'Lifecycle watchlist for current Amazon EKS minor versions with standard and extended support dates.',
         'Extended support cost calculator using the EKS control-plane support tier delta.',
-        'Multi-hop upgrade planner that turns selected versions, node models, add-ons, and API findings into an RFC.',
+        'Fleet and single-version upgrade planner that turns EKS rows, node models, add-ons, and API findings into a change plan.',
       ],
     },
     {
@@ -75,7 +75,7 @@ function featureSections() {
       items: [
         'Pasted manifests are scanned in the browser and are not uploaded to AWS or a product backend.',
         'Source citations stay visible for lifecycle data, pricing assumptions, add-on documentation, and migration guidance.',
-        'Evidence exports call out local-only limitations so production approvers know what still needs live-cluster verification.',
+        'Change packet exports call out local-only limitations so production reviewers know what still needs live-cluster verification.',
       ],
     },
   ];
@@ -87,10 +87,10 @@ function versionRoute(version, index) {
     path: versionGuidePath(version.version),
     priority: index < 6 ? '0.8' : '0.7',
     title: `EKS ${version.version} Upgrade Guide | Lifecycle, Cost, APIs, and Add-ons`,
-    description: `Source-cited EKS ${version.version} upgrade guide with support dates, target planning, deprecated API checks, add-on validation, and evidence notes.`,
+    description: `Source-cited EKS ${version.version} upgrade guide with support dates, target planning, deprecated API checks, add-on validation, and change-packet notes.`,
     eyebrow: 'Version upgrade guide',
     heading: `EKS ${version.version} upgrade guide`,
-    lead: `Plan an Amazon EKS ${version.version} upgrade with lifecycle dates, support-tier cost context, route-to-target notes, deprecated API checks, add-on validation, and evidence collection.`,
+    lead: `Plan an Amazon EKS ${version.version} upgrade with lifecycle dates, support-tier cost context, route-to-target notes, deprecated API checks, add-on validation, and change evidence collection.`,
     sections: [
       {
         heading: 'Lifecycle facts',
@@ -150,7 +150,7 @@ function addonRoute(addon) {
           `Confirm ${addon.name} is installed and owned by the expected delivery mechanism.`,
           'Review version compatibility and release notes before changing the EKS control plane.',
           'Run workload smoke tests that exercise this add-on after each control-plane hop.',
-          'Capture output in the evidence pack with any exceptions or follow-up work.',
+          'Capture output in the change packet with any exceptions or follow-up work.',
         ],
       },
     ],
@@ -165,7 +165,7 @@ export const publicRoutes = [
     description: 'Plan Amazon EKS Kubernetes upgrades with lifecycle deadlines, extended support cost estimates, upgrade hops, add-on checks, and local deprecated API scanning.',
     eyebrow: 'Amazon EKS upgrade planning',
     heading: 'EKS Upgrade Planner',
-    lead: 'A static-heavy planning tool for platform teams preparing Amazon EKS upgrades, support deadline responses, add-on validation, deprecated API cleanup, and source-cited evidence packs.',
+    lead: 'A static-heavy planning tool for platform teams preparing Amazon EKS upgrades, support deadline responses, add-on validation, deprecated API cleanup, and source-cited change packets.',
     sections: [
       ...featureSections(),
       {
@@ -177,11 +177,11 @@ export const publicRoutes = [
   route({
     path: '/app',
     priority: '1.0',
-    title: 'EKS Upgrade Planner App | Release Train Workspace',
-    description: 'Open the EKS Upgrade Planner workspace for lifecycle gates, cost exposure, add-on readiness, deprecated API findings, and copyable upgrade evidence.',
-    eyebrow: 'Release train workspace',
-    heading: 'EKS release train workspace',
-    lead: `Coordinate an EKS ${publicEksVersions[4].version} to EKS ${latestVersion.version} upgrade response with lifecycle status, finance context, API scan output, add-on gates, and evidence exports.`,
+    title: 'EKS Upgrade Planner App | Fleet Planning Workspace',
+    description: 'Open the EKS Upgrade Planner workspace for fleet scope, lifecycle gates, remaining support fees, add-on readiness, deprecated API findings, and copyable change packets.',
+    eyebrow: 'Fleet planning workspace',
+    heading: 'EKS fleet planning workspace',
+    lead: `Coordinate an EKS ${publicEksVersions[4].version} to EKS ${latestVersion.version} upgrade response with fleet scope, lifecycle status, cost context, API scan output, add-on checks, and change-packet exports.`,
     sections: featureSections(),
   }),
   route({
@@ -201,8 +201,8 @@ export const publicRoutes = [
         heading: 'How to use the registry',
         items: [
           'Prioritize versions that are in extended support, already expired, or close to the standard support end date.',
-          'Open each version guide for lifecycle, cost, deprecated API, add-on, and evidence planning details.',
-          'Verify the static dataset against AWS documentation before approving a production upgrade.',
+          'Open each version guide for lifecycle, cost, deprecated API, add-on, and change-packet planning details.',
+          'Verify the static dataset against AWS documentation and linked archive sources before approving a production upgrade.',
         ],
       },
     ],
@@ -210,18 +210,18 @@ export const publicRoutes = [
   route({
     path: '/eks/extended-support-cost-calculator',
     priority: '0.9',
-    title: 'EKS Extended Support Cost Calculator | Support-Tier Scenario Ledger',
-    description: 'Estimate Amazon EKS extended support exposure across cluster counts and delay windows, with copyable finance-ready planning language.',
+    title: 'EKS Extended Support Cost Calculator | Support-Tier Cost Model',
+    description: 'Estimate Amazon EKS remaining extended-support fees using $0.10 standard and $0.60 extended per cluster-hour pricing, with deadline-risk notes for unsupported windows.',
     eyebrow: 'Cost calculator',
     heading: 'EKS extended support cost calculator',
-    lead: 'Model the control-plane support-tier delta for delayed Amazon EKS upgrades and produce finance-readable accelerate, bridge, or defer scenarios.',
+    lead: 'Model the control-plane support-tier delta for delayed Amazon EKS upgrades and show only the overlap between the delay window and extended support.',
     sections: [
       {
         heading: 'Cost model inputs',
         items: [
           'Select the current EKS version, number of clusters, and modeled delay window.',
           'Compare accelerate, bridge, and defer scenarios using monthly and total support-tier deltas.',
-          'Copy the generated business case into an RFC, Jira ticket, or budget review packet.',
+          'Copy the generated cost model into a change plan, Jira ticket, or budget review packet.',
         ],
       },
       {
@@ -237,19 +237,19 @@ export const publicRoutes = [
   route({
     path: '/eks/upgrade-planner',
     priority: '0.9',
-    title: 'EKS Upgrade Planner | Multi-Hop RFC Builder',
-    description: 'Build an Amazon EKS upgrade RFC with version hops, node model checks, add-on gates, deprecated API findings, and maintenance-window context.',
+    title: 'EKS Upgrade Planner | Fleet and Single-Version Change Plans',
+    description: 'Build Amazon EKS upgrade plans for mixed-version fleets or single-version what-if scenarios with version hops, node checks, add-ons, API findings, and maintenance context.',
     eyebrow: 'Upgrade planner',
-    heading: 'EKS multi-hop upgrade planner',
-    lead: 'Turn current and target EKS versions into a release train with control-plane stations, add-on readiness gates, node model checks, API findings, and copyable RFC Markdown.',
+    heading: 'EKS fleet upgrade planner',
+    lead: 'Turn Overview fleet rows into route-grouped control-plane hops, shared add-on and node checks, deadline risk, and copyable change Markdown.',
     sections: [
       {
         heading: 'Planner outputs',
         items: [
-          'Control-plane hop sequence from the selected current version to the target EKS version.',
+          'Fleet mode groups mixed EKS versions by current-to-target route and shows per-row hop paths.',
+          'Single-version mode remains available for one selected release line or what-if scenario.',
           'Managed node group, self-managed node, Fargate, or Karpenter validation prompts.',
-          'Selected add-on checklist coverage and local deprecated API scan findings.',
-          'Copyable Jira/RFC Markdown for upgrade review and execution tracking.',
+          'Copyable fleet or single-scenario change Markdown for upgrade review and execution tracking.',
         ],
       },
       {
@@ -281,7 +281,7 @@ export const publicRoutes = [
       {
         heading: 'Upgrade workflow',
         items: [
-          'Attach findings to the upgrade RFC and evidence pack.',
+          'Attach findings to the upgrade change plan and change packet.',
           'Remediate deprecated APIs before each control-plane hop and before workload rollout windows.',
           'Validate rendered Helm, Kustomize, and GitOps output, not only source templates.',
         ],
@@ -291,10 +291,10 @@ export const publicRoutes = [
   route({
     path: '/eks/addons',
     priority: '0.8',
-    title: 'EKS Add-on Readiness Matrix | Managed and Platform Add-on Checks',
+    title: 'EKS Add-on Readiness Checklist | Managed and Platform Add-on Checks',
     description: 'Review Amazon EKS managed add-ons and platform controllers with preflight commands, source links, and post-upgrade validation prompts.',
     eyebrow: 'Add-on readiness',
-    heading: 'EKS add-on readiness matrix',
+    heading: 'EKS add-on readiness checklist',
     lead: 'Validate managed add-ons and platform controllers that commonly affect EKS upgrade readiness, including networking, DNS, storage, ingress, autoscaling, certificates, GitOps, and observability.',
     sections: [
       {
@@ -306,7 +306,7 @@ export const publicRoutes = [
         items: [
           'Open each add-on compatibility route for commands and source documentation.',
           'Capture installed version, ownership mechanism, health, and release-note exceptions before the control-plane change.',
-          'Repeat validation after each hop and attach results to the evidence pack.',
+          'Repeat validation after each hop and attach results to the change packet.',
         ],
       },
     ],
@@ -314,25 +314,26 @@ export const publicRoutes = [
   route({
     path: '/eks/evidence-pack',
     priority: '0.8',
-    title: 'EKS Upgrade Evidence Pack | Lifecycle, Cost, API, and Add-on Report',
-    description: 'Assemble an EKS upgrade evidence pack with lifecycle citations, support-cost model, deprecated API scan output, add-on records, and local-only limitations.',
-    eyebrow: 'Evidence pack',
-    heading: 'EKS upgrade evidence pack',
-    lead: 'Create a source-cited evidence packet for upgrade review that combines lifecycle dates, cost assumptions, API scanner output, selected add-ons, node model notes, and limitations.',
+    title: 'EKS Selected Scenario Change Packet | Lifecycle, Cost, API, and Add-ons',
+    description: 'Assemble a selected-scenario EKS upgrade change packet with lifecycle citations, support-cost model, deprecated API scan output, add-on records, fleet context, and local-only limitations.',
+    eyebrow: 'Change packet',
+    heading: 'EKS selected scenario change packet',
+    lead: 'Create a source-cited change packet for the selected EKS scenario, with fleet context summarized and mixed-version execution handled in the Planner.',
     sections: [
       {
-        heading: 'Evidence contents',
+        heading: 'Packet contents',
         items: [
           'Lifecycle citation and support deadline for the selected EKS version.',
           'Control-plane support-tier cost model and delay assumptions.',
           'Deprecated API scanner output and selected add-on validation record.',
+          'Fleet row and cluster counts for context, while per-row execution stays in the Planner.',
           'Explicit local-only limitations for reviewers and approvers.',
         ],
       },
       {
         heading: 'Review use',
         items: [
-          'Paste the evidence report into change review, security review, or platform governance workflows.',
+          'Paste the change packet into change review, security review, or platform governance workflows.',
           'Treat the report as a planning artifact and verify live-cluster state before approving production upgrades.',
         ],
       },

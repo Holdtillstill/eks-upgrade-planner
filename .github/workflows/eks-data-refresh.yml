@@ -1,0 +1,51 @@
+name: EKS data refresh
+
+on:
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Refresh static EKS data
+        run: npm run data:update
+
+      - name: Validate refreshed app
+        run: |
+          npm test
+          npm run lint
+          SITE_URL_ALLOW_LOCALHOST=true npm run build
+
+      - name: Open data refresh pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: data/eks-live-refresh
+          delete-branch: true
+          commit-message: 'chore: refresh eks lifecycle data'
+          title: 'chore: refresh EKS lifecycle data'
+          body: |
+            Automated EKS data refresh from:
+
+            - AWS EKS Kubernetes version lifecycle docs
+            - AWS EKS platform versions docs
+            - endoflife.date Amazon EKS archive
+
+            Validation runs `npm test`, `npm run lint`, and a localhost-allowed production build.

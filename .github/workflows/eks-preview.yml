@@ -1,0 +1,149 @@
+name: Deploy EKS preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: Kubernetes namespace for the preview release.
+        required: true
+        default: eks-upgrade-planner-preview
+      release:
+        description: Helm release name.
+        required: true
+        default: eks-upgrade-planner
+      ttl_hours:
+        description: Preview lifetime in hours. Shared cleanup automation should remove expired previews.
+        required: true
+        default: '4'
+      site_url:
+        description: Public preview URL used for build metadata.
+        required: true
+        default: https://demo.example.com
+      ingress_host:
+        description: Optional ingress host. Leave blank when the shared provisioner manages routing.
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+concurrency:
+  group: eks-preview-${{ inputs.namespace }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_TO_ASSUME: ${{ vars.EKS_PREVIEW_AWS_ROLE_TO_ASSUME }}
+      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+      SITE_URL: ${{ inputs.site_url }}
+    steps:
+      - name: Check required preview variables
+        run: |
+          : "${AWS_ROLE_TO_ASSUME:?Set repository variable EKS_PREVIEW_AWS_ROLE_TO_ASSUME}"
+          : "${EKS_CLUSTER_NAME:?Set repository variable EKS_CLUSTER_NAME}"
+          : "${SITE_URL:?Provide a preview site_url input}"
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Compute image metadata
+        id: image
+        env:
+          TTL_HOURS: ${{ inputs.ttl_hours }}
+        run: |
+          case "${TTL_HOURS}" in
+            ''|*[!0-9]*) echo "ttl_hours must be a positive integer" >&2; exit 1 ;;
+          esac
+          if [ "${TTL_HOURS}" -lt 1 ] || [ "${TTL_HOURS}" -gt 168 ]; then
+            echo "ttl_hours must be between 1 and 168" >&2
+            exit 1
+          fi
+          echo "repository=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=preview-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+          echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "expires_at=$(date -u -d "+${TTL_HOURS} hours" +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push preview image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.image.outputs.repository }}:${{ steps.image.outputs.tag }}
+          build-args: |
+            SITE_URL=${{ env.SITE_URL }}
+            APP_VERSION=preview
+            SOURCE_VERSION=${{ github.sha }}
+            BUILD_TIME=${{ steps.image.outputs.created }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name "${EKS_CLUSTER_NAME}" --region "${AWS_REGION}"
+
+      - name: Deploy preview release
+        env:
+          EXPIRES_AT: ${{ steps.image.outputs.expires_at }}
+          IMAGE_REPOSITORY: ${{ steps.image.outputs.repository }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+          INGRESS_HOST: ${{ inputs.ingress_host }}
+          NAMESPACE: ${{ inputs.namespace }}
+          RELEASE: ${{ inputs.release }}
+        run: |
+          kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl label namespace "${NAMESPACE}" \
+            app.kubernetes.io/part-of=eks-upgrade-planner \
+            preview.eks-upgrade-planner.io/enabled=true \
+            --overwrite
+          kubectl annotate namespace "${NAMESPACE}" \
+            preview.eks-upgrade-planner.io/expires-at="${EXPIRES_AT}" \
+            --overwrite
+
+          HELM_ARGS=(
+            --namespace "${NAMESPACE}"
+            --create-namespace
+            --set "image.repository=${IMAGE_REPOSITORY}"
+            --set "image.tag=${IMAGE_TAG}"
+            --set "env.siteUrl=${SITE_URL}"
+            --set "env.sourceVersion=${GITHUB_SHA}"
+            --set "env.buildTime=${{ steps.image.outputs.created }}"
+            --set-string "podAnnotations.preview\\.eks-upgrade-planner\\.io/expires-at=${EXPIRES_AT}"
+          )
+
+          if [ -n "${INGRESS_HOST}" ]; then
+            HELM_ARGS+=(
+              --set "ingress.enabled=true"
+              --set "ingress.hosts[0].host=${INGRESS_HOST}"
+              --set "ingress.hosts[0].paths[0].path=/"
+              --set "ingress.hosts[0].paths[0].pathType=Prefix"
+            )
+          fi
+
+          helm upgrade --install "${RELEASE}" deploy/helm/eks-upgrade-planner "${HELM_ARGS[@]}"
+
+      - name: Show rollout status
+        run: kubectl rollout status deploy/${{ inputs.release }} -n "${{ inputs.namespace }}" --timeout=180s

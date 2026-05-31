@@ -158,7 +158,7 @@ function DesignFive() {
     <section className="observatory">
       <div className="radar"><div className={`sweep ${severity}`}/>{eksVersions.slice(1, 7).map((v, i) => <i key={v.version} className={`r${i}`}><b>{v.version}</b></i>)}</div>
       <div className="obs-copy"><p className="kicker">/5 RISK OBSERVATORY</p><h1>A live-feeling radar for upgrade risk and cost gravity.</h1><p className="lead">This direction is intentionally cinematic: the site feels like an operational observatory, while every claim still resolves to a date, a price, or a command.</p><Controls version={version} setVersion={setVersion} clusters={clusters} setClusters={setClusters} months={months} setMonths={setMonths}/></div>
-      <div className="obs-stack"><div className="obs-ticket"><span>Projected exposure</span><strong>{formatCurrency(cost.extraTotal)}</strong><p>{clusters} clusters · {months} months · {formatHourlyCurrency(eksPricing.extendedPerClusterHour)} extended support hourly rate</p><CopyButton text={text} label="Copy alert"/></div><VersionMiniTable limit={5}/></div>
+      <div className="obs-stack"><div className="obs-ticket"><span>Remaining support fees</span><strong>{formatCurrency(cost.extraTotal)}</strong><p>{clusters} clusters · {months} months · {formatHourlyCurrency(eksPricing.extendedPerClusterHour)} extended support hourly rate</p><CopyButton text={text} label="Copy alert"/></div><VersionMiniTable limit={5}/></div>
     </section>
   </main>;
 }
@@ -179,7 +179,7 @@ function DesignSix() {
     version: v,
     tone: statusTone(v),
     label: deadlineCopy(v),
-    escalation: getSupportStatus(v).includes('extended') || getSupportStatus(v) === 'expired' ? 'Finance + VP Eng' : 'Platform lead',
+    escalation: getSupportStatus(v).includes('extended') || getSupportStatus(v) === 'expired' ? 'Deadline review' : 'Platform review',
   }));
   const visibleRows = incidentRows.filter((row) => {
     if (filter === 'all') return true;
@@ -196,7 +196,7 @@ function DesignSix() {
   const severity = statusTone(selected) === 'bad' ? 'SEV-1' : statusTone(selected) === 'warn' ? 'SEV-2' : 'SEV-3';
   const responseNote = `${severity} EKS ${version} upgrade response
 ${deadlineCopy(selected)}
-Scope: ${clusters} clusters, ${months} month exposure window
+Scope: ${clusters} clusters, ${months} month delay model
 Projected support-tier delta: ${formatCurrency(cost.extraTotal)}
 Completed response items: ${completed}/${tasks.length}
 ${tasks.map((task) => `${checked[task.id] ? '[x]' : '[ ]'} ${task.label} - ${task.detail}`).join('\n')}`;
@@ -207,7 +207,7 @@ ${tasks.map((task) => `${checked[task.id] ? '[x]' : '[ ]'} ${task.label} - ${tas
         <div>
           <p className="kicker">/6 INCIDENT WAR ROOM</p>
           <h1>Run the upgrade deadline like a live response.</h1>
-          <p className="lead">Escalation, cost exposure, owners, and lifecycle dates stay on one operational board.</p>
+          <p className="lead">Deadline status, remaining support fees, and readiness checks stay on one operational board.</p>
         </div>
         <div className={`war-severity ${statusTone(selected)}`}>
           <span>{severity}</span>
@@ -273,9 +273,9 @@ Version: ${version}
 Standard support end: ${selected.standardSupportEnd}
 Scenario: ${activeScenario.label}
 Clusters: ${clusters}
-Exposure window: ${activeScenario.months} month(s)
+Completion window: ${activeScenario.months} month(s)
 Extra monthly support-tier delta: ${formatCurrency(activeScenario.cost.extraMonthly)}
-Scenario exposure: ${formatCurrency(activeScenario.cost.extraTotal)}
+Remaining support fees: ${formatCurrency(activeScenario.cost.extraTotal)}
 Avoided vs defer case: ${formatCurrency(avoided)}
 Pricing note: ${eksPricing.note}
 Source: ${eksPricing.sourceUrl}`;
@@ -306,7 +306,7 @@ Source: ${eksPricing.sourceUrl}`;
           <div className="finance-total">
             <span>{activeScenario.label} case</span>
             <strong>{formatCurrency(activeScenario.cost.extraTotal)}</strong>
-            <p>{activeScenario.months} month exposure, {formatCurrency(activeScenario.cost.extraMonthly)} extra per month, {formatCurrency(avoided)} avoided versus defer.</p>
+            <p>{activeScenario.months} month window, {formatCurrency(activeScenario.cost.extraMonthly)} extra per month when fully in extended support, {formatCurrency(avoided)} fewer remaining fees than defer.</p>
           </div>
           <div className="ledger">
             <div><span>Standard support</span><b>{formatCurrency(activeScenario.cost.standardMonthly)}</b><em>monthly</em></div>
@@ -314,7 +314,7 @@ Source: ${eksPricing.sourceUrl}`;
             <div><span>Delta</span><b>{formatCurrency(activeScenario.cost.extraMonthly)}</b><em>monthly</em></div>
           </div>
           <table className="finance-table">
-            <thead><tr><th>Scenario</th><th>Window</th><th>Exposure</th><th>Planning note</th></tr></thead>
+            <thead><tr><th>Scenario</th><th>Window</th><th>Remaining fees</th><th>Planning note</th></tr></thead>
             <tbody>{scenarioRows.map((row) => <tr key={row.id} className={scenario === row.id ? 'selected' : ''}><td>{row.label}</td><td>{row.months} mo</td><td>{formatCurrency(row.cost.extraTotal)}</td><td>{row.note}</td></tr>)}</tbody>
           </table>
           <CopyButton text={businessCase} label="Copy business case"/>
@@ -409,12 +409,12 @@ function DesignNine() {
   ];
   const visibleControls = controls.filter((control) => filter === 'all' || control.state === filter);
   const activeControl = visibleControls.find((control) => control.id === activeId) ?? visibleControls[0] ?? controls[0];
-  const evidenceId = `EKS-${version.replace('.', '')}-${clusters}-${months}-${findings.length}`;
+  const evidenceId = `EKS-${version.replaceAll('.', '')}-${clusters}-${months}-${findings.length}`;
   const evidencePack = `Compliance evidence pack ${evidenceId}
 Data checked: ${dataFreshness.checkedAt}
 Version: EKS ${version}
 Lifecycle: ${deadlineCopy(selected)}
-Extended support exposure: ${formatCurrency(cost.extraTotal)}
+Remaining support fees: ${formatCurrency(cost.extraTotal)}
 Controls:
 ${controls.map((control) => `${control.id} ${control.state.toUpperCase()} - ${control.title} - ${control.detail} - ${control.url}`).join('\n')}
 Manifest findings:
@@ -431,7 +431,7 @@ ${findings.length ? findings.map((finding) => `${finding.kind} ${finding.apiVers
         <header className="binder-cover">
           <p className="kicker">/9 COMPLIANCE EVIDENCE BINDER</p>
           <h1>Package upgrade risk as auditable evidence.</h1>
-          <p className="lead">Lifecycle dates, cost exposure, add-on checks, API findings, and source citations assembled for review.</p>
+          <p className="lead">Lifecycle dates, support-fee risk, add-on checks, API findings, and source citations assembled for review.</p>
         </header>
 
         <div className="binder-controls">

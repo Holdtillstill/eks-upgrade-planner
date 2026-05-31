@@ -137,9 +137,70 @@ Run `npm run smoke:local` while the production server is already listening on
 `http://127.0.0.1:8080`, or set `SMOKE_BASE_URL`. If `/metrics` is token
 protected, also export `SMOKE_METRICS_BEARER_TOKEN` or `METRICS_BEARER_TOKEN`.
 
+## GitHub, CI, and Static Hosting
+
+This repo is structured for a hybrid ownership model:
+
+- App repo: product code, Dockerfile, Helm chart, app CI/CD, static-hosting
+  Terraform, Cloudflare mirror workflow, and optional EKS preview workflow.
+- Shared infra repo: Route 53 hosted zone, Terraform backend, GitHub OIDC
+  provider/roles, shared EKS cluster, shared ingress/ALB, preview cleanup, and
+  budgets.
+
+GitHub workflows:
+
+- `.github/workflows/ci.yml` runs data freshness checks, tests, lint,
+  typecheck, and production build on pushes and pull requests.
+- `.github/workflows/static-deploy.yml` deploys `dist/` to S3 and invalidates
+  CloudFront using GitHub OIDC. It expects repository variables
+  `AWS_ROLE_TO_ASSUME`, `AWS_REGION`, `STATIC_SITE_BUCKET`,
+  `CLOUDFRONT_DISTRIBUTION_ID`, and `SITE_URL`.
+- `.github/workflows/docker-publish.yml` publishes tagged Docker images to
+  GHCR.
+- `.github/workflows/eks-preview.yml` builds a preview image and deploys the
+  Helm chart into a shared EKS namespace with TTL annotations for external
+  cleanup automation.
+- `.github/workflows/cloudflare-pages.yml` optionally deploys the built static
+  output to a Cloudflare Pages mirror.
+- `.github/workflows/eks-data-refresh.yml` opens scheduled data refresh PRs
+  when AWS/endoflife.date lifecycle data changes.
+
+App-specific AWS static hosting Terraform lives in
+`infra/terraform/static-hosting`. It plans a private S3 bucket, CloudFront,
+Origin Access Control, ACM certificate, Route 53 records, strict response
+headers, clean URL rewrites for prerendered routes, and static `404.html`
+mapping. It is intentionally plan-only until the shared infra bootstrap and
+deployment role exist.
+
+The static build also writes `dist/404.html` and `dist/_headers`. `404.html`
+keeps unknown extensionless routes as real noindex 404s when CloudFront maps S3
+`403`/`404` misses to it. `_headers` gives Cloudflare Pages the same CSP and
+security posture as the Node server.
+
 ## Data and trust model
 
-This MVP uses static source-linked data in `src/data/`. It does **not** call AWS APIs, store product account data, or upload/store manifests. Scanner results are computed in the browser. The production server emits operational request logs that may include request path, status, IP address, and user agent. Verify all lifecycle/pricing/addon guidance against AWS and upstream project docs before approving production upgrades.
+This app uses static source-linked data in `src/data/`. It does **not** call AWS
+APIs, store product account data, or upload/store manifests. Scanner results are
+computed in the browser. The production server emits operational request logs
+that may include request path, status, IP address, and user agent. Verify all
+lifecycle/pricing/addon guidance against AWS and upstream project docs before
+approving production upgrades.
+
+EKS lifecycle freshness is guarded by `scripts/sync-eks-data.js`:
+
+```bash
+npm run data:check
+npm run data:update
+```
+
+`data:check` validates the checked-in EKS lifecycle dataset against the AWS EKS
+Kubernetes version lifecycle page, the AWS EKS platform versions page, and the
+endoflife.date Amazon EKS archive. `data:update` rewrites
+`src/data/versions.ts` and the SEO route mirror in `scripts/public-routes.js`
+when those sources drift. The scheduled GitHub workflow in
+`.github/workflows/eks-data-refresh.yml` runs the updater, test suite, lint, and
+production build, then opens a pull request only when the live source data
+changes.
 
 ## Known limitations
 
