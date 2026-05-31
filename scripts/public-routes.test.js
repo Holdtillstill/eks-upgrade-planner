@@ -104,7 +104,7 @@ describe('public SEO routes', () => {
 
     expect(secondPass).toContain('data-prerendered-route="/app"');
     expect(secondPass.match(/data-prerendered-route=/g)).toHaveLength(1);
-    expect(secondPass).toContain('<title>EKS Upgrade Planner App | Release Train Workspace</title>');
+    expect(secondPass).toContain('<title>EKS Upgrade Planner App | Fleet Planning Workspace</title>');
   });
 
   it('keeps prerendered HTML compatible with a strict style-src self CSP', () => {

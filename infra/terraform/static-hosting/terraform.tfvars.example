@@ -1,0 +1,9 @@
+site_domain        = "planner.example.com"
+additional_aliases = ["www.planner.example.com"]
+hosted_zone_id     = "Z00000000000000000000"
+aws_region         = "us-east-1"
+
+tags = {
+  Owner       = "platform"
+  Environment = "prod"
+}

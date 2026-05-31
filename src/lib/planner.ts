@@ -8,7 +8,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function daysUntil(date: string, now = new Date()): number {
   const target = new Date(`${date}T00:00:00Z`).getTime();
-  const current = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const current = billingDay(now).getTime();
   return Math.ceil((target - current) / MS_PER_DAY);
 }
 
@@ -16,9 +16,9 @@ export function getSupportStatus(version: EksVersion, now = new Date()): Support
   const standardDays = daysUntil(version.standardSupportEnd, now);
   const extendedDays = daysUntil(version.extendedSupportEnd, now);
   if (standardDays > 90) return 'standard';
-  if (standardDays >= 0) return 'standard-ending-soon';
+  if (standardDays > 0) return 'standard-ending-soon';
   if (extendedDays > 90) return 'extended';
-  if (extendedDays >= 0) return 'extended-ending-soon';
+  if (extendedDays > 0) return 'extended-ending-soon';
   return 'expired';
 }
 
@@ -32,16 +32,20 @@ export function statusLabel(status: SupportStatus): string {
   }[status];
 }
 
-function utcDay(date: Date): Date {
+function billingDay(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-function addUtcMonths(date: Date, months: number): Date {
+function addBillingMonths(date: Date, months: number): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, date.getUTCDate()));
 }
 
 function dateFromIsoDay(value: string): Date {
   return new Date(`${value}T00:00:00Z`);
+}
+
+function isoDay(date: Date): string {
+  return date.toISOString().slice(0, 10);
 }
 
 export function calculateEksSupportCost(clusterCount: number, months: number) {
@@ -62,22 +66,41 @@ export function calculateEksSupportCost(clusterCount: number, months: number) {
 
 export function calculateEksSupportExposure(version: EksVersion, clusterCount: number, months: number, now = new Date()) {
   const rateCard = calculateEksSupportCost(clusterCount, months);
-  const start = utcDay(now);
-  const end = addUtcMonths(start, months);
+  const start = billingDay(now);
+  const end = addBillingMonths(start, months);
   const extendedStart = dateFromIsoDay(version.standardSupportEnd);
   const extendedEnd = dateFromIsoDay(version.extendedSupportEnd);
+  // Treat lifecycle ranges as half-open UTC billing days: [standard end, extended end).
   const billableStart = new Date(Math.max(start.getTime(), extendedStart.getTime()));
   const billableEnd = new Date(Math.min(end.getTime(), extendedEnd.getTime()));
+  const modeledDays = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / MS_PER_DAY));
   const billableDays = Math.max(0, Math.ceil((billableEnd.getTime() - billableStart.getTime()) / MS_PER_DAY));
   const billableHours = billableDays * 24;
   const billableMonths = billableHours / eksPricing.hoursPerMonth;
   const extraHourly = (eksPricing.extendedPerClusterHour - eksPricing.standardPerClusterHour) * clusterCount;
+  const isPastExtendedSupport = start.getTime() >= extendedEnd.getTime();
+  const daysPastExtendedSupport = isPastExtendedSupport
+    ? Math.max(0, Math.ceil((start.getTime() - extendedEnd.getTime()) / MS_PER_DAY))
+    : 0;
+  const postExtendedSupportStart = new Date(Math.max(start.getTime(), extendedEnd.getTime()));
+  const postExtendedSupportDays = Math.max(0, Math.ceil((end.getTime() - postExtendedSupportStart.getTime()) / MS_PER_DAY));
+  const billableWindowClippedByExtendedEnd = billableDays > 0 && postExtendedSupportDays > 0;
 
   return {
     ...rateCard,
+    modeledDays,
     billableDays,
     billableHours,
     billableMonths,
+    isPastExtendedSupport,
+    daysPastExtendedSupport,
+    postExtendedSupportDays,
+    postExtendedSupportHours: postExtendedSupportDays * 24,
+    billableWindowClippedByExtendedEnd,
+    modelStart: isoDay(start),
+    modelEnd: isoDay(end),
+    billableStart: billableDays ? isoDay(billableStart) : null,
+    billableEnd: billableDays ? isoDay(billableEnd) : null,
     standardTotal: eksPricing.standardPerClusterHour * billableHours * clusterCount,
     extendedTotal: eksPricing.extendedPerClusterHour * billableHours * clusterCount,
     extraTotal: extraHourly * billableHours,

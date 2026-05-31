@@ -125,6 +125,24 @@ the release. If your ingress controller does not support nginx snippets, use an
 ingress/WAF rule or keep bearer-token auth enabled before exposing the app
 publicly.
 
+## Static Edge Hosting
+
+The primary public production target can be CloudFront plus a private S3 bucket.
+`npm run build` writes prerendered public route HTML, then generates `404.html`
+and `_headers` for static hosts. The Terraform plan in
+`infra/terraform/static-hosting` adds:
+
+- CloudFront clean URL rewrites so `/eks/versions` resolves to
+  `/eks/versions/index.html`.
+- CloudFront custom error mapping so unknown extensionless routes return a real
+  `404` from `/404.html` with noindex metadata.
+- A response headers policy matching `server/security.js`, including a
+  self-only CSP and no `unsafe-inline`.
+
+CloudFront/S3 should be the default public host. Kubernetes remains useful as a
+shared, on-demand demo path rather than the always-on serving layer for this
+static-heavy product.
+
 ## Privacy and Logging
 
 Planner inputs and pasted manifests are processed in the browser and are not
@@ -134,4 +152,6 @@ logs may include request path, normalized route, status, duration, request ID,
 trace ID, IP address, and user agent for operations, debugging, and abuse
 prevention.
 
-No cloud resources are deployed by this repo.
+No cloud resources are created by local validation or by Terraform planning.
+Apply static-hosting Terraform only after the shared infra bootstrap, GitHub
+OIDC roles, and cost limits are approved.

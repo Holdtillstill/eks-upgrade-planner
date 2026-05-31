@@ -156,6 +156,14 @@ ${guide.postUpgradeValidation.map((item) => `- ${item}`).join('\n')}
 export function generateCostReport(version: string, clusterCount: number, monthsDelayed: number, now = new Date()): string {
   const selected = findEksVersion(version);
   const cost = calculateEksSupportExposure(selected, clusterCount, monthsDelayed, now);
+  const remainingFeeValue = cost.isPastExtendedSupport
+    ? 'Not applicable - release is past extended support'
+    : formatCurrency(cost.extraTotal);
+  const riskNote = cost.isPastExtendedSupport
+    ? `- Risk note: Extended support ended on ${selected.extendedSupportEnd}; AWS can automatically upgrade clusters after the end of extended support.`
+    : cost.postExtendedSupportDays > 0
+      ? `- Risk note: The billable window stops at ${selected.extendedSupportEnd}; ${cost.postExtendedSupportDays} modeled day(s) fall after extended support ends.`
+      : '';
   return `# EKS extended support estimate
 
 Version: EKS ${selected.version}
@@ -163,6 +171,7 @@ Cluster count: ${clusterCount}
 Exposure window: ${monthsDelayed} month(s)
 Standard support end: ${selected.standardSupportEnd}
 Extended support end: ${selected.extendedSupportEnd}
+Billing calendar: AWS UTC lifecycle day
 
 ## Local estimate
 - Standard support control-plane rate: ${formatHourlyCurrency(eksPricing.standardPerClusterHour)} per cluster hour
@@ -171,7 +180,9 @@ Extended support end: ${selected.extendedSupportEnd}
 - Extended monthly estimate: ${formatCurrency(cost.extendedMonthly)}
 - Monthly rate delta if extended support is reached: ${formatCurrency(cost.extraMonthly)}
 - Billable extended-support days in modeled window: ${cost.billableDays}
-- Modeled support-tier exposure: ${formatCurrency(cost.extraTotal)}
+- Past-support days in modeled window: ${cost.postExtendedSupportDays}
+- Modeled remaining support fees: ${remainingFeeValue}
+${riskNote}
 
 ## Sources and limits
 - Lifecycle source: ${selected.sourceUrl}
@@ -187,14 +198,20 @@ export function generatePlannerMarkdown(input: PlannerReportInput): string {
   const hops = generateHopSequence(current.version, effectiveTarget.version);
   const selectedAddons = addons.filter((addon) => input.selectedAddonIds.includes(addon.id));
   const cost = calculateEksSupportExposure(current, input.clusterCount, input.monthsDelayed);
+  const costExposure = cost.isPastExtendedSupport ? 'Not applicable - release is past extended support' : formatCurrency(cost.extraTotal);
+  const costRiskNote = cost.isPastExtendedSupport
+    ? `- Extended support ended on ${current.extendedSupportEnd}; treat this as automatic-upgrade risk, not a zero-cost state.`
+    : cost.postExtendedSupportDays > 0
+      ? `- Billable support fees stop at ${current.extendedSupportEnd}; ${cost.postExtendedSupportDays} modeled day(s) are after extended support ends.`
+      : '';
 
-  return `# EKS upgrade RFC
+  return `# EKS upgrade change plan
 
 ## Scope
 - Current version: EKS ${current.version}
 - Target version: EKS ${effectiveTarget.version}
 - Cluster count: ${input.clusterCount}
-- Delay/exposure model: ${input.monthsDelayed} month(s)
+- Delay model: ${input.monthsDelayed} month(s)
 - Node model: ${nodeModelLabels[input.nodeModel]}
 
 ## Control-plane hops
@@ -209,10 +226,11 @@ ${selectedAddons.map((addon) => `- ${addon.name}: ${addon.checks[0]} (${addon.so
 ## Deprecated API scan
 ${input.scannerFindings.length ? input.scannerFindings.map((finding) => `- ${finding.severity.toUpperCase()}: line ${finding.line}, ${finding.kind} ${finding.apiVersion}; use ${finding.replacement}. ${finding.migrationGuide}`).join('\n') : '- No deprecated API matches detected in pasted manifest text.'}
 
-## Cost exposure
+## Cost and deadline risk
 - Monthly rate delta if delayed into extended support: ${formatCurrency(cost.extraMonthly)}
 - Billable extended-support days in modeled window: ${cost.billableDays}
-- Modeled support-tier exposure: ${formatCurrency(cost.extraTotal)}
+- Modeled remaining support fees: ${costExposure}
+${costRiskNote}
 - Pricing source: ${eksPricing.sourceUrl}
 
 ## Limitations
@@ -229,9 +247,9 @@ export function generateEvidenceReport(input: EvidenceReportInput): string {
     ? input.scannerFindings.map((finding) => `- ${finding.kind} ${finding.apiVersion}, line ${finding.line}, removed in ${finding.removedIn}; ${finding.migrationGuide}`).join('\n')
     : '- No deprecated API matches detected in pasted manifest text.';
 
-  return `# EKS evidence pack
+  return `# EKS production change packet
 
-Evidence id: EKS-${current.version.replace('.', '')}-${target.version.replace('.', '')}-${input.evidenceVersion}
+Evidence id: EKS-${current.version.replaceAll('.', '')}-${target.version.replaceAll('.', '')}-${input.evidenceVersion}
 Data checked: ${dataFreshness.checkedAt}
 
 ## Selected version
@@ -242,7 +260,7 @@ Data checked: ${dataFreshness.checkedAt}
 ## Cost record
 ${costReport}
 
-## Planner record
+## Change plan record
 ${generatePlannerMarkdown(input)}
 
 ## Scanner record

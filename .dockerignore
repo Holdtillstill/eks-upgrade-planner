@@ -1,9 +1,13 @@
 .git
+.github
 .DS_Store
 node_modules
 dist
 coverage
-npm-debug.log*
-Dockerfile
-.dockerignore
-*.local
+.env
+.env.*
+chrome-lighthouse-results*.json
+lighthouse-*.json
+**/.terraform
+*.tfstate
+*.tfstate.*
