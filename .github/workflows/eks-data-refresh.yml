@@ -9,15 +9,19 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  SITE_URL: ${{ vars.SITE_URL || 'https://eks-upgrade-planner.bozhi.dev' }}
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -28,17 +32,30 @@ jobs:
       - name: Refresh static EKS data
         run: npm run data:update
 
+      - name: Detect data changes
+        id: data_changes
+        run: |
+          if git diff --quiet -- src/data/versions.ts scripts/public-routes.js; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Validate refreshed app
         run: |
           npm test
           npm run lint
-          SITE_URL_ALLOW_LOCALHOST=true npm run build
+          npm run build
 
       - name: Open data refresh pull request
+        if: steps.data_changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           branch: data/eks-live-refresh
           delete-branch: true
+          add-paths: |
+            src/data/versions.ts
+            scripts/public-routes.js
           commit-message: 'chore: refresh eks lifecycle data'
           title: 'chore: refresh EKS lifecycle data'
           body: |
@@ -48,4 +65,4 @@ jobs:
             - AWS EKS platform versions docs
             - endoflife.date Amazon EKS archive
 
-            Validation runs `npm test`, `npm run lint`, and a localhost-allowed production build.
+            Validation runs `npm test`, `npm run lint`, and a production build.

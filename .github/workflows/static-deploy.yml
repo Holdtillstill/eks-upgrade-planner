@@ -2,10 +2,24 @@ name: Deploy static site
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/static-deploy.yml
+      - index.html
+      - package-lock.json
+      - package.json
+      - public/**
+      - scripts/**
+      - src/**
 
 permissions:
   contents: read
   id-token: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
   group: static-production
@@ -29,10 +43,10 @@ jobs:
           : "${SITE_URL:?Set repository variable SITE_URL}"
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -53,7 +67,7 @@ jobs:
         run: npm run validate:static-hosting
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
