@@ -188,6 +188,7 @@ security posture as the Node server.
 
 See `docs/deployment.md` for deployment ownership, preview TTL, and Cloudflare
 mirror notes. See `docs/cost-notes.md` for the expected AWS cost posture.
+See `docs/roadmap.md` for public product and operations follow-ups.
 
 ## Data and trust model
 
