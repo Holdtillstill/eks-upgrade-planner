@@ -44,3 +44,28 @@ jobs:
 
       - name: Validate static hosting output
         run: npm run validate:static-hosting
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: eks-upgrade-planner:${{ github.sha }}
+          build-args: |
+            SITE_URL=${{ env.SITE_URL }}
+            APP_VERSION=ci
+            SOURCE_VERSION=${{ github.sha }}
+            BUILD_TIME=ci
+
+      - name: Scan Docker image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: eks-upgrade-planner:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"

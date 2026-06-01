@@ -45,10 +45,12 @@ jobs:
         id: meta
         run: echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
-      - uses: docker/build-push-action@v6
+      - name: Build image
+        uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: false
+          load: true
           platforms: linux/amd64
           tags: |
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:main
@@ -58,3 +60,17 @@ jobs:
             APP_VERSION=main
             SOURCE_VERSION=${{ github.sha }}
             BUILD_TIME=${{ steps.meta.outputs.created }}
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Push image
+        run: |
+          docker push "${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:main"
+          docker push "${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"

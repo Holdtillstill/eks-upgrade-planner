@@ -43,12 +43,14 @@ jobs:
           tags: |
             type=ref,event=tag
             type=sha,prefix=sha-
+            type=raw,value=scan-${{ github.sha }}
 
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: false
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
@@ -56,3 +58,18 @@ jobs:
             APP_VERSION=${{ github.ref_name }}
             SOURCE_VERSION=${{ github.sha }}
             BUILD_TIME=${{ steps.image.outputs.created }}
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image.outputs.repository }}:scan-${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Push image
+        run: |
+          while IFS= read -r tag; do
+            docker push "$tag"
+          done <<< "${{ steps.meta.outputs.tags }}"
