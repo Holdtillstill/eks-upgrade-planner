@@ -3,6 +3,10 @@ grafana:
   defaultDashboardsEnabled: true
   adminPassword: eks-planner-local
   sidecar:
+    image:
+      registry: docker.io
+      repository: kiwigrid/k8s-sidecar
+      tag: 2.7.3
     dashboards:
       enabled: true
     datasources:
@@ -38,15 +42,42 @@ prometheus:
     scrapeInterval: 15s
     retention: 3d
     enableRemoteWriteReceiver: true
+    image:
+      registry: docker.io
+      repository: prom/prometheus
+      tag: v3.12.0
 
 alertmanager:
   enabled: true
+  alertmanagerSpec:
+    image:
+      registry: docker.io
+      repository: prom/alertmanager
+      tag: v0.32.1
 
 kube-state-metrics:
   enabled: true
 
 prometheus-node-exporter:
   enabled: true
+  image:
+    registry: docker.io
+    repository: prom/node-exporter
+    tag: v1.11.1
+    distroless: false
+
+prometheusOperator:
+  image:
+    registry: ghcr.io
+    repository: prometheus-operator/prometheus-operator
+  prometheusConfigReloader:
+    image:
+      registry: ghcr.io
+      repository: prometheus-operator/prometheus-config-reloader
+  prometheusDefaultBaseImageRegistry: docker.io
+  prometheusDefaultBaseImage: prom/prometheus
+  alertmanagerDefaultBaseImageRegistry: docker.io
+  alertmanagerDefaultBaseImage: prom/alertmanager
 
 kubeControllerManager:
   enabled: false

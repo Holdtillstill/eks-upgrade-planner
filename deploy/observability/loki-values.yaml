@@ -24,6 +24,12 @@ loki:
 
 singleBinary:
   replicas: 1
+  extraVolumes:
+    - name: loki-data
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: loki-data
+      mountPath: /var/loki
   persistence:
     enabled: false
   resources:
@@ -37,6 +43,9 @@ singleBinary:
 chunksCache:
   enabled: false
 resultsCache:
+  enabled: false
+
+lokiCanary:
   enabled: false
 
 read:

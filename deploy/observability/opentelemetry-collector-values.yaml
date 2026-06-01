@@ -3,6 +3,14 @@ mode: deployment
 image:
   repository: otel/opentelemetry-collector-contrib
 
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
+
 config:
   receivers:
     otlp:
