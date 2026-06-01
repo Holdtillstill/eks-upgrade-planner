@@ -137,7 +137,8 @@ and `_headers` for static hosts. The Terraform plan in
 - CloudFront custom error mapping so unknown extensionless routes return a real
   `404` from `/404.html` with noindex metadata.
 - A response headers policy matching `server/security.js`, including a
-  self-only CSP and no `unsafe-inline`.
+  strict CSP with a first-party visitor telemetry exception and no
+  `unsafe-inline`.
 
 CloudFront/S3 should be the default public host. Kubernetes remains useful as a
 shared, on-demand demo path rather than the always-on serving layer for this

@@ -40,6 +40,8 @@ const sitemap = readRequired('sitemap.xml');
 
 assert(notFoundHtml.includes('<meta name="robots" content="noindex,nofollow" />'), '404.html must include noindex metadata');
 assert(headers.includes("Content-Security-Policy: default-src 'self'"), '_headers must include the strict CSP');
+assert(headers.includes("script-src 'self' https://on-demand-demos.bozhi.dev"), '_headers must allow the first-party visitor script');
+assert(headers.includes("connect-src 'self' https://on-demand-demos.bozhi.dev"), '_headers must allow the visitor collector endpoint');
 assert(headers.includes("style-src 'self'"), '_headers must keep style-src self-only');
 assert(!headers.includes("'unsafe-inline'"), '_headers must not allow unsafe-inline');
 

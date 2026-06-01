@@ -18,7 +18,8 @@ Verify:
 - `/eks/1-35-upgrade-guide` returns prerendered HTML.
 - `/unknown-extensionless-route` returns a real `404`, not the app shell.
 - Browser HTML 404 responses include `noindex,nofollow`.
-- Security headers include CSP with `style-src 'self'` and no `unsafe-inline`.
+- Security headers include CSP with `style-src 'self'`, the visitor telemetry
+  origin exception, and no `unsafe-inline`.
 
 ## Static Hosting Output
 
@@ -33,7 +34,8 @@ Verify:
 - CloudFront clean-URL rewrites map extensionless routes to nested
   `index.html` files.
 - `dist/404.html` includes noindex metadata.
-- `dist/_headers` carries the static-host CSP for Cloudflare Pages.
+- `dist/_headers` carries the static-host CSP for Cloudflare Pages, including
+  the visitor telemetry origin exception.
 - `dist/sitemap.xml` includes every public route.
 
 ## Browser Smoke

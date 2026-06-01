@@ -59,6 +59,8 @@ describe('metrics auth config', () => {
 describe('security headers', () => {
   it('keeps style sources self-only without unsafe-inline', () => {
     expect(contentSecurityPolicy).toContain("style-src 'self'");
+    expect(contentSecurityPolicy).toContain("script-src 'self' https://on-demand-demos.bozhi.dev");
+    expect(contentSecurityPolicy).toContain("connect-src 'self' https://on-demand-demos.bozhi.dev");
     expect(contentSecurityPolicy).not.toContain("'unsafe-inline'");
   });
 });

@@ -1,13 +1,13 @@
 export const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
-  "connect-src 'self'",
+  "connect-src 'self' https://on-demand-demos.bozhi.dev",
   "font-src 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "img-src 'self'",
   "object-src 'none'",
-  "script-src 'self'",
+  "script-src 'self' https://on-demand-demos.bozhi.dev",
   "style-src 'self'",
 ].join('; ');
 

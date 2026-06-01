@@ -11,7 +11,7 @@ locals {
     var.tags,
   )
 
-  content_security_policy = "default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self'; object-src 'none'; script-src 'self'; style-src 'self'"
+  content_security_policy = "default-src 'self'; base-uri 'self'; connect-src 'self' https://on-demand-demos.bozhi.dev; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self'; object-src 'none'; script-src 'self' https://on-demand-demos.bozhi.dev; style-src 'self'"
 
   clean_url_rewrite_function = file("${path.module}/../../cloudfront/clean-url-rewrite.js")
 }
