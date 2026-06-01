@@ -55,6 +55,12 @@ variable "cloudfront_wait_for_deployment" {
   default     = true
 }
 
+variable "web_acl_id" {
+  description = "Optional AWS WAF web ACL ARN to attach to the CloudFront distribution."
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "Common tags for app-specific AWS resources."
   type        = map(string)

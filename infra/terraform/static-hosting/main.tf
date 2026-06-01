@@ -166,6 +166,7 @@ resource "aws_cloudfront_distribution" "site" {
   aliases             = local.aliases
   default_root_object = "index.html"
   price_class         = var.price_class
+  web_acl_id          = var.web_acl_id != "" ? var.web_acl_id : null
   tags                = local.tags
 
   origin {
