@@ -48,7 +48,7 @@ jobs:
 
       - name: Set up kubectl
         if: ${{ steps.preview_config.outputs.configured == 'true' }}
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v5
 
       - name: Set up Helm
         if: ${{ steps.preview_config.outputs.configured == 'true' }}
