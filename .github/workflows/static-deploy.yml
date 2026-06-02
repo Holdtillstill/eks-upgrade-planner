@@ -108,3 +108,6 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
             --paths "/*"
+
+      - name: Smoke deployed static host
+        run: WEB_BASE="${SITE_URL}" npm run smoke:static-host

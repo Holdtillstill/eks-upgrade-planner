@@ -26,6 +26,7 @@ Verify:
 ```bash
 SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build
 npm run validate:static-hosting
+WEB_BASE=https://eks-upgrade-planner.bozhi.dev npm run smoke:static-host
 ```
 
 Verify:
@@ -37,6 +38,9 @@ Verify:
 - `dist/_headers` carries the static-host CSP for Cloudflare Pages, including
   the visitor telemetry origin exception.
 - `dist/sitemap.xml` includes every public route.
+- The deployed static host returns every public route with prerender metadata,
+  the visitor telemetry tag, CloudFront security headers, and a real 404 for
+  unknown or fake API paths.
 
 ## Browser Smoke
 
