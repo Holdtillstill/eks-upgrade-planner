@@ -42,6 +42,9 @@ jobs:
       - name: Validate edge security config
         run: npm run validate:edge-security
 
+      - name: Validate Actions secret usage
+        run: npm run validate:actions-secrets
+
       - name: Build
         run: npm run build
 

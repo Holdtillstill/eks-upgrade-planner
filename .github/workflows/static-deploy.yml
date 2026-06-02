@@ -33,16 +33,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
-      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
-      S3_BUCKET: ${{ vars.STATIC_SITE_BUCKET }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+      S3_BUCKET: ${{ secrets.STATIC_SITE_BUCKET }}
       SITE_URL: ${{ vars.SITE_URL }}
     steps:
       - name: Check required deployment variables
         run: |
-          : "${AWS_ROLE_TO_ASSUME:?Set repository variable AWS_ROLE_TO_ASSUME}"
-          : "${CLOUDFRONT_DISTRIBUTION_ID:?Set repository variable CLOUDFRONT_DISTRIBUTION_ID}"
-          : "${S3_BUCKET:?Set repository variable STATIC_SITE_BUCKET}"
+          : "${AWS_ROLE_TO_ASSUME:?Set Actions secret AWS_ROLE_TO_ASSUME}"
+          : "${CLOUDFRONT_DISTRIBUTION_ID:?Set Actions secret CLOUDFRONT_DISTRIBUTION_ID}"
+          : "${S3_BUCKET:?Set Actions secret STATIC_SITE_BUCKET}"
           : "${SITE_URL:?Set repository variable SITE_URL}"
 
       - name: Check out repository
@@ -75,6 +75,7 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
 
       - name: Upload non-asset files with short browser cache
         run: |

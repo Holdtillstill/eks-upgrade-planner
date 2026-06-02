@@ -60,25 +60,36 @@ CloudFront Function or response headers policy changes, run Terraform plan/apply
 for `infra/terraform/static-hosting` and then redeploy or invalidate the static
 site so edge behavior matches the repo.
 
-The deploy workflow expects these repository variables:
+The deploy workflow expects these public repository variables:
 
-- `AWS_ROLE_TO_ASSUME`
 - `AWS_REGION`
-- `STATIC_SITE_BUCKET`
-- `CLOUDFRONT_DISTRIBUTION_ID`
 - `SITE_URL`
 
-Use GitHub OIDC. Do not create long-lived AWS access keys.
+It also expects these Actions secrets:
+
+- `AWS_ROLE_TO_ASSUME`
+- `STATIC_SITE_BUCKET`
+- `CLOUDFRONT_DISTRIBUTION_ID`
+
+Use GitHub OIDC. Do not create long-lived AWS access keys. Keep account-scoped
+identifiers such as role ARNs, bucket names, distribution IDs, hosted zone IDs,
+EKS cluster names, and Cloudflare account/project identifiers in Actions
+secrets, not repository variables.
 
 ## EKS Preview
 
 The app repo can build a preview image and deploy the Helm chart to shared EKS
 capacity with `.github/workflows/eks-preview.yml`. This path is for explicit
-demo/review requests, not normal public serving. Required repository variables:
+demo/review requests, not normal public serving. Required GitHub configuration:
+
+Public repository variable:
+
+- `AWS_REGION`
+
+Actions secrets:
 
 - `EKS_PREVIEW_AWS_ROLE_TO_ASSUME`
 - `EKS_CLUSTER_NAME`
-- `AWS_REGION`
 
 The workflow annotates the namespace with
 `preview.eks-upgrade-planner.io/expires-at`. Cleanup automation should remove
@@ -95,9 +106,9 @@ own lifecycle policy.
 
 The Cloudflare Pages workflow is optional and manual. It expects:
 
-- repository variable `CLOUDFLARE_PAGES_PROJECT`
 - secret `CLOUDFLARE_ACCOUNT_ID`
 - secret `CLOUDFLARE_API_TOKEN`
+- secret `CLOUDFLARE_PAGES_PROJECT`
 - optional repository variable `CLOUDFLARE_SITE_URL`
 
 Keep Route 53 authoritative unless there is a deliberate decision to move DNS.

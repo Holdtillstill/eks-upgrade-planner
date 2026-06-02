@@ -12,14 +12,14 @@ jobs:
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+      CLOUDFLARE_PAGES_PROJECT: ${{ secrets.CLOUDFLARE_PAGES_PROJECT }}
       SITE_URL: ${{ vars.CLOUDFLARE_SITE_URL || vars.SITE_URL || 'https://eks-upgrade-planner.bozhi.dev' }}
     steps:
       - name: Check required Cloudflare variables
         run: |
           : "${CLOUDFLARE_ACCOUNT_ID:?Set secret CLOUDFLARE_ACCOUNT_ID}"
           : "${CLOUDFLARE_API_TOKEN:?Set secret CLOUDFLARE_API_TOKEN}"
-          : "${CLOUDFLARE_PAGES_PROJECT:?Set repository variable CLOUDFLARE_PAGES_PROJECT}"
+          : "${CLOUDFLARE_PAGES_PROJECT:?Set secret CLOUDFLARE_PAGES_PROJECT}"
 
       - name: Check out repository
         uses: actions/checkout@v4

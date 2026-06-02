@@ -160,12 +160,14 @@ GitHub workflows:
   checks, production build, static-host validation, Docker build, and image
   scanning on pushes and pull requests.
 - `.github/workflows/static-deploy.yml` deploys `dist/` to S3 and invalidates
-  CloudFront using GitHub OIDC. It expects repository variables
-  `AWS_ROLE_TO_ASSUME`, `AWS_REGION`, `STATIC_SITE_BUCKET`,
-  `CLOUDFRONT_DISTRIBUTION_ID`, and `SITE_URL`. It is manual until AWS
-  bootstrap resources and repository variables exist.
+  CloudFront using GitHub OIDC. It expects public repository variables
+  `AWS_REGION` and `SITE_URL`, plus Actions secrets `AWS_ROLE_TO_ASSUME`,
+  `STATIC_SITE_BUCKET`, and `CLOUDFRONT_DISTRIBUTION_ID`. It is manual until
+  AWS bootstrap resources and GitHub configuration exist.
 - `.github/workflows/docker-publish.yml` publishes tagged Docker images to
   GHCR.
+- `.github/workflows/ecr-publish.yml` is manual-only for private AWS preview
+  publishing because ECR registry hostnames are account-scoped.
 - `.github/workflows/eks-preview.yml` builds a preview image and can deploy the
   Helm chart into a short-lived shared EKS namespace for demo/review only.
 - `.github/workflows/cloudflare-pages.yml` optionally deploys the built static

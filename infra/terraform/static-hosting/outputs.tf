@@ -18,12 +18,19 @@ output "site_aliases" {
   value       = local.aliases
 }
 
-output "github_actions_variables" {
-  description = "Repository variables consumed by .github/workflows/static-deploy.yml. The OIDC role is supplied separately."
+output "github_actions_public_variables" {
+  description = "Public repository variables consumed by .github/workflows/static-deploy.yml."
   value = {
-    AWS_REGION                 = var.aws_region
+    AWS_REGION = var.aws_region
+    SITE_URL   = "https://${var.site_domain}"
+  }
+}
+
+output "github_actions_secrets" {
+  description = "Sensitive Actions secret values consumed by .github/workflows/static-deploy.yml. The OIDC role secret is supplied separately."
+  sensitive   = true
+  value = {
     CLOUDFRONT_DISTRIBUTION_ID = aws_cloudfront_distribution.site.id
-    SITE_URL                   = "https://${var.site_domain}"
     STATIC_SITE_BUCKET         = aws_s3_bucket.site.bucket
   }
 }

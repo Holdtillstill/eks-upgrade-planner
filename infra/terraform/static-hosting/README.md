@@ -31,14 +31,19 @@ are ready.
 
 ## GitHub Actions Outputs
 
-After apply, set these app repository variables from the `github_actions_variables`
-output:
+After apply, set public app repository variables from the
+`github_actions_public_variables` output:
 
 - `AWS_REGION`
-- `AWS_ROLE_TO_ASSUME` from the GitHub OIDC deploy role
-- `CLOUDFRONT_DISTRIBUTION_ID`
 - `SITE_URL`
+
+Set Actions secrets from the sensitive `github_actions_secrets` output:
+
+- `CLOUDFRONT_DISTRIBUTION_ID`
 - `STATIC_SITE_BUCKET`
+
+Also set the `AWS_ROLE_TO_ASSUME` Actions secret from the GitHub OIDC deploy
+role created by the shared/bootstrap infrastructure.
 
 The static deploy workflow builds with `SITE_URL`, syncs `dist/` to S3, and
 invalidates CloudFront.

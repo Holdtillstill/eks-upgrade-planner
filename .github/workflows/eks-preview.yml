@@ -46,16 +46,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-      AWS_ROLE_TO_ASSUME: ${{ vars.EKS_PREVIEW_AWS_ROLE_TO_ASSUME }}
-      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.EKS_PREVIEW_AWS_ROLE_TO_ASSUME }}
+      EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
       SITE_URL: ${{ inputs.site_url }}
     steps:
       - name: Check required preview variables
         env:
           ACTION: ${{ inputs.action }}
         run: |
-          : "${AWS_ROLE_TO_ASSUME:?Set repository variable EKS_PREVIEW_AWS_ROLE_TO_ASSUME}"
-          : "${EKS_CLUSTER_NAME:?Set repository variable EKS_CLUSTER_NAME}"
+          : "${AWS_ROLE_TO_ASSUME:?Set Actions secret EKS_PREVIEW_AWS_ROLE_TO_ASSUME}"
+          : "${EKS_CLUSTER_NAME:?Set Actions secret EKS_CLUSTER_NAME}"
           : "${SITE_URL:?Provide a preview site_url input}"
           case "${ACTION}" in provision|destroy) ;; *) echo "Unsupported action: ${ACTION}" >&2; exit 1 ;; esac
 
@@ -116,6 +116,7 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4

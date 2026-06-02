@@ -2,26 +2,14 @@ name: Publish ECR image
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - Dockerfile
-      - package.json
-      - package-lock.json
-      - server/**
-      - scripts/**
-      - src/**
-      - public/**
-      - .github/workflows/ecr-publish.yml
 
 permissions:
   contents: read
   id-token: write
 
 env:
-  AWS_REGION: us-west-2
-  AWS_ROLE_TO_ASSUME: ${{ vars.ECR_AWS_ROLE_TO_ASSUME }}
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
+  AWS_ROLE_TO_ASSUME: ${{ secrets.ECR_AWS_ROLE_TO_ASSUME }}
   ECR_REPOSITORY: eks-upgrade-planner
   SITE_URL: ${{ vars.EKS_PREVIEW_SITE_URL || 'https://eks-upgrade-planner-preview.bozhi.dev' }}
 
@@ -29,6 +17,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Check required ECR variables
+        run: |
+          : "${AWS_ROLE_TO_ASSUME:?Set Actions secret ECR_AWS_ROLE_TO_ASSUME}"
+
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
@@ -37,6 +29,7 @@ jobs:
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
 
       - uses: aws-actions/amazon-ecr-login@v2
         id: ecr
