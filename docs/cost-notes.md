@@ -19,6 +19,10 @@ The largest fixed cost is usually the hosted zone/domain side, not the app
 files. CloudFront, S3 storage, S3 requests, DNS queries, and invalidations scale
 with traffic and deploy frequency.
 
+The static asset bucket uses SSE-S3 encryption. A customer-managed KMS key would
+add a fixed monthly cost that is not justified for this public static portfolio
+surface.
+
 ## Costs To Avoid
 
 - Dedicated EKS cluster for this app.

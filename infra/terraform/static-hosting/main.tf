@@ -50,6 +50,7 @@ resource "aws_s3_bucket_versioning" "site" {
   }
 }
 
+#trivy:ignore:AWS-0132 SSE-S3 avoids a paid customer-managed KMS key for this static portfolio bucket.
 resource "aws_s3_bucket_server_side_encryption_configuration" "site" {
   bucket = aws_s3_bucket.site.id
 
