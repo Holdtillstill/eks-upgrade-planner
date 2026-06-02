@@ -36,6 +36,9 @@ jobs:
       - name: Public readiness checks
         run: npm run check:public-readiness
 
+      - name: Check EKS lifecycle data freshness
+        run: npm run data:check
+
       - name: Lint
         run: npm run lint
 
