@@ -17,7 +17,7 @@ jobs:
       SITE_URL: ${{ vars.SITE_URL || 'https://eks-upgrade-planner.bozhi.dev' }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Compute image metadata
         id: image

@@ -21,7 +21,7 @@ jobs:
         run: |
           : "${AWS_ROLE_TO_ASSUME:?Set Actions secret ECR_AWS_ROLE_TO_ASSUME}"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: docker/setup-buildx-action@v3
 

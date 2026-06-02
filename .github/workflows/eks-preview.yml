@@ -60,7 +60,7 @@ jobs:
           case "${ACTION}" in provision|destroy) ;; *) echo "Unsupported action: ${ACTION}" >&2; exit 1 ;; esac
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Compute image metadata
         if: ${{ inputs.action == 'provision' }}
