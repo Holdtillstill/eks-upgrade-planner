@@ -27,7 +27,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci --include=optional
+          node -e "require('lightningcss')"
 
       - name: Refresh static EKS data
         run: npm run data:update
