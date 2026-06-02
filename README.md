@@ -224,7 +224,9 @@ endoflife.date Amazon EKS archive. `data:update` rewrites
 when those sources drift. The scheduled GitHub workflow in
 `.github/workflows/eks-data-refresh.yml` runs the updater, test suite, lint, and
 production build, then opens a pull request only when the live source data
-changes.
+changes. The public snapshot date reflects the last verified dataset update
+committed to the repo; no-op daily checks stay visible in GitHub Actions rather
+than opening date-only pull requests.
 
 ## Known limitations
 

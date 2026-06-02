@@ -212,6 +212,10 @@ describe('ProductShell integration', () => {
     if (!(sourceRail instanceof HTMLElement)) throw new Error('source rail not found');
     const links = within(sourceRail).getAllByRole('link');
     const labelToHrefs = new Map<string, Set<string>>();
+
+    expect(within(sourceRail).getByText(/verified dataset snapshot/i)).toBeTruthy();
+    expect(within(sourceRail).getByText(/daily scheduled source check/i)).toBeTruthy();
+
     for (const link of links) {
       const label = link.textContent ?? '';
       if (!labelToHrefs.has(label)) labelToHrefs.set(label, new Set());

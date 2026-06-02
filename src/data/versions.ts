@@ -10,8 +10,9 @@ export type EksVersion = {
 };
 
 export const dataFreshness = {
-  checkedAt: '2026-05-30',
-  note: 'Static client-side dataset checked against AWS lifecycle and platform-version docs for supported releases, with archived endoflife.date records for older expired releases. Verify against AWS before production change approvals.',
+  checkedAt: '2026-06-02',
+  note: 'Static client-side dataset checked against AWS lifecycle and platform-version docs for supported releases, with archived endoflife.date records for older expired releases. A scheduled GitHub workflow checks live sources daily and opens a PR when source data drifts.',
+  verificationCadence: 'Daily scheduled source check; snapshot date changes when a verified dataset update is committed.',
   sourceLabel: 'AWS EKS Kubernetes version lifecycle',
   sourceUrl: 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html',
 };

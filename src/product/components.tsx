@@ -42,9 +42,10 @@ export function SourceRail({ currentVersion, scannerFindings }: { currentVersion
       <p>{scannerFindings} local API finding(s) attached to the workspace state.</p>
     </div>
     <div>
-      <span className="eyebrow">Dataset Snapshot</span>
+      <span className="eyebrow">Verified Dataset Snapshot</span>
       <strong>{dataFreshness.checkedAt}</strong>
       <p>{dataFreshness.note}</p>
+      <p>{dataFreshness.verificationCadence}</p>
     </div>
     <div className="trust-box">
       <span className="eyebrow">Trust Model</span>
