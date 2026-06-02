@@ -35,8 +35,23 @@ function assertMatches(text, pattern, context) {
   }
 }
 
+function assertNoUnquotedColonValues(text, context) {
+  const riskyPlainScalar = /^([ \t]*[A-Za-z_][\w-]*:[ \t]+)([^"'\[{|>][^\n#]*:[ \t][^\n#]*)$/gm
+  const findings = []
+  for (const match of text.matchAll(riskyPlainScalar)) {
+    const line = text.slice(0, match.index).split("\n").length
+    findings.push(`${context}:${line}: quote mapping values that contain ': ' -> ${match[0].trim()}`)
+  }
+
+  if (findings.length > 0) {
+    throw new Error(`Workflow YAML contains ambiguous plain scalars:\n${findings.join("\n")}`)
+  }
+}
+
 async function readWorkflow(name) {
-  return readFile(new URL(name, workflowsDir), "utf8")
+  const workflow = await readFile(new URL(name, workflowsDir), "utf8")
+  assertNoUnquotedColonValues(workflow, name)
+  return workflow
 }
 
 const workflowFiles = (await readdir(workflowsDir)).filter((name) => name.endsWith(".yml")).sort()

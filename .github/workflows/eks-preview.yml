@@ -20,7 +20,7 @@ on:
         required: true
         default: eks-upgrade-planner
       ttl_hours:
-        description: Preview lifetime in hours. Cost guardrail: 1 to 4 hours.
+        description: "Preview lifetime in hours. Cost guardrail: 1 to 4 hours."
         required: true
         default: '4'
       site_url:
