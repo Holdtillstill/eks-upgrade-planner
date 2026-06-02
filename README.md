@@ -48,7 +48,7 @@ Open: http://127.0.0.1:5173/
 Build the Vite app and serve it with the production server:
 
 ```bash
-SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build
+npm run build
 PORT=8080 NODE_ENV=production METRICS_BEARER_TOKEN="$(openssl rand -hex 24)" npm start
 ```
 
@@ -67,8 +67,9 @@ Operational endpoints:
 `SITE_URL` controls canonical, OpenGraph, `robots.txt`, and `sitemap.xml`
 metadata. Production builds require `SITE_URL` to be a public `http` or `https`
 origin; `localhost` and `127.0.0.1` are rejected unless
-`SITE_URL_ALLOW_LOCALHOST=true` is set for a local/demo build. If `SITE_URL` is
-unset, local dev commands default to `http://localhost:8080`.
+`SITE_URL_ALLOW_LOCALHOST=true` is set for a local/demo build. `npm run build`
+defaults to `https://eks-upgrade-planner.bozhi.dev`; set `SITE_URL` explicitly
+when building a preview or alternate deployment.
 `npm run generate:public-metadata` regenerates `public/robots.txt` and
 `public/sitemap.xml`; `npm run build` runs it automatically before Vite and runs
 `npm run prerender` afterward. The prerender step writes route-specific static
@@ -147,7 +148,7 @@ Local/demo values live in `deploy/observability`. See
 
 ```bash
 npm test
-SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build
+npm run build
 npm run validate:static-hosting
 npm run lint
 npm run smoke:local
