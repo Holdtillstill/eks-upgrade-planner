@@ -112,7 +112,7 @@ The chart is in `deploy/helm/eks-upgrade-planner` and does not deploy cloud
 resources:
 
 ```bash
-export IMAGE_REPOSITORY=ghcr.io/acme/eks-upgrade-planner
+export IMAGE_REPOSITORY=ghcr.io/holdtillstill/eks-upgrade-planner
 export IMAGE_TAG=0.1.0
 export SITE_URL=https://eks-upgrade-planner.bozhi.dev
 

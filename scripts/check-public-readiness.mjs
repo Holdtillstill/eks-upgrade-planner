@@ -56,6 +56,7 @@ const robotsPath = path.join(root, "public/robots.txt")
 const sitemapPath = path.join(root, "public/sitemap.xml")
 const socialPreviewPath = path.join(root, "public/social-preview.jpg")
 const issueTemplateConfigPath = path.join(root, ".github/ISSUE_TEMPLATE/config.yml")
+const contributingPath = path.join(root, "CONTRIBUTING.md")
 
 function relative(filePath) {
   return path.relative(root, filePath)
@@ -146,6 +147,18 @@ if (fs.existsSync(issueTemplateConfigPath)) {
   }
 } else {
   findings.push(".github/ISSUE_TEMPLATE/config.yml: missing")
+}
+
+if (fs.existsSync(contributingPath)) {
+  const contributing = fs.readFileSync(contributingPath, "utf8")
+  if (!contributing.includes("Do not include secrets")) {
+    findings.push("CONTRIBUTING.md: missing public-safety contribution boundary")
+  }
+  if (!contributing.includes("npm run check:public-readiness")) {
+    findings.push("CONTRIBUTING.md: missing public-readiness validation command")
+  }
+} else {
+  findings.push("CONTRIBUTING.md: missing")
 }
 
 if (findings.length) {
