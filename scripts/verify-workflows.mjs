@@ -157,7 +157,7 @@ assertAll(
   [
     "workflow_dispatch:",
     "options:\n          - provision\n          - destroy",
-    "ttl_hours must be between 1 and 168",
+    "ttl_hours must be between 1 and 4",
     "docker/build-push-action@v6",
     "aquasecurity/trivy-action@v0.36.0",
     "aws-actions/configure-aws-credentials@v6",

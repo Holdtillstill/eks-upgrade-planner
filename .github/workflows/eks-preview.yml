@@ -20,7 +20,7 @@ on:
         required: true
         default: eks-upgrade-planner
       ttl_hours:
-        description: Preview lifetime in hours. Shared cleanup automation should remove expired previews.
+        description: Preview lifetime in hours. Cost guardrail: 1 to 4 hours.
         required: true
         default: '4'
       site_url:
@@ -74,8 +74,8 @@ jobs:
           case "${TTL_HOURS}" in
             ''|*[!0-9]*) echo "ttl_hours must be a positive integer" >&2; exit 1 ;;
           esac
-          if [ "${TTL_HOURS}" -lt 1 ] || [ "${TTL_HOURS}" -gt 168 ]; then
-            echo "ttl_hours must be between 1 and 168" >&2
+          if [ "${TTL_HOURS}" -lt 1 ] || [ "${TTL_HOURS}" -gt 4 ]; then
+            echo "ttl_hours must be between 1 and 4" >&2
             exit 1
           fi
           {
