@@ -15,4 +15,4 @@ Use GitHub private vulnerability reporting or a direct owner channel. Do not ope
 
 ## Baseline Checks
 
-CI runs dependency audit, Gitleaks secret scanning, GitHub dependency review, Trivy filesystem scanning, and Trivy image scanning on build/publish paths.
+CI runs dependency audit, Gitleaks secret scanning, Trivy filesystem scanning, and Trivy image scanning on build/publish paths. GitHub dependency review runs on public pull requests where the repository security features support it.
