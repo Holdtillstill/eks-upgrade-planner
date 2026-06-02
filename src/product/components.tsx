@@ -50,8 +50,9 @@ export function SourceRail({ currentVersion, scannerFindings }: { currentVersion
     <div className="trust-box">
       <span className="eyebrow">Trust model</span>
       <p>Planner inputs and pasted manifests run locally in the browser. No AWS APIs, product accounts, credentials, cluster discovery, or manifest upload are used or stored.</p>
-      <p>Production request logs may include path, IP address, and user agent for operations and abuse prevention.</p>
+      <p>First-party pageview telemetry respects Do Not Track and Global Privacy Control. Notifications use masked or coarse values; raw IP and user agent are retained briefly for digest, abuse, and reliability analysis.</p>
       <p>Cost values are estimates for the EKS control-plane support tier only. Releases past extended support are flagged as automatic-upgrade risk instead of zero-cost choices.</p>
+      <a className="privacy-note-link" href="/privacy.html">Privacy note</a>
     </div>
     <div className="source-list">
       <span className="eyebrow">Sources</span>
@@ -68,6 +69,7 @@ export function ProductTabs({ active, guideVersion, setRoute }: { active: Produc
       return <a
         key={tab.id}
         className={active === tab.id ? 'active' : ''}
+        aria-current={active === tab.id ? 'page' : undefined}
         href={path}
         onClick={(event) => {
           event.preventDefault();

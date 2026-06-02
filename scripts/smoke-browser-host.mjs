@@ -1,4 +1,5 @@
 import { chromium } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const WEB_BASE = normalizeBase(process.env.WEB_BASE || process.env.SITE_URL || 'https://eks-upgrade-planner.bozhi.dev');
 const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS || 20000);
@@ -27,6 +28,7 @@ function isSameOriginApi(url) {
   try {
     const target = new URL(url);
     const base = new URL(WEB_BASE);
+    if (target.origin === base.origin && target.pathname === '/api/events') return false;
     return target.origin === base.origin && target.pathname.startsWith('/api/');
   } catch {
     return false;
@@ -91,6 +93,8 @@ async function visitRoute(page, route, profileName) {
     throw new Error(`${profileName} ${route.path} has ${horizontalOverflow}px horizontal overflow`);
   }
 
+  await assertNoSeriousA11yViolations(page, `${profileName} ${route.path}`);
+
   const pageview = visitorEvents.find((event) => event.project === 'eks-upgrade-planner' && event.eventType === 'pageview');
   if (!pageview) {
     throw new Error(`${profileName} ${route.path} did not send a first-party visitor pageview`);
@@ -105,6 +109,20 @@ async function visitRoute(page, route, profileName) {
   if (errors.length) throw new Error(`${profileName} ${route.path} console/page errors:\n${errors.join('\n')}`);
   if (failedRequests.length) throw new Error(`${profileName} ${route.path} failed requests:\n${failedRequests.join('\n')}`);
   if (unexpectedApiCalls.length) throw new Error(`${profileName} ${route.path} made same-origin API calls:\n${unexpectedApiCalls.join('\n')}`);
+}
+
+async function assertNoSeriousA11yViolations(page, label) {
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze();
+  const violations = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''));
+  if (violations.length) {
+    throw new Error(
+      `${label} has serious accessibility violations:\n${violations
+        .map((violation) => `${violation.id}: ${violation.help} (${violation.nodes.length} node(s))`)
+        .join('\n')}`,
+    );
+  }
 }
 
 async function verifyPrivacySignals(browser) {
@@ -155,7 +173,9 @@ try {
 
   await verifyPrivacySignals(browser);
 
-  console.log(`Browser host smoke passed for ${WEB_BASE} across ${routes.length} route(s), ${profiles.length} viewport(s), and privacy telemetry checks.`);
+  console.log(
+    `Browser host smoke passed for ${WEB_BASE} across ${routes.length} route(s), ${profiles.length} viewport(s), privacy telemetry checks, and serious/critical accessibility checks.`,
+  );
 } finally {
   await browser.close();
 }

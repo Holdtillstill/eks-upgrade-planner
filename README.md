@@ -195,7 +195,9 @@ GitHub workflows:
   AWS OIDC trust policy for that environment-specific subject before adding an
   `environment` binding to this job.
 - `.github/workflows/static-smoke.yml` runs scheduled HTTP and Chromium browser
-  smoke against the public static host and selected deep links.
+  smoke against the public static host and selected deep links, including
+  console, overflow, visitor-telemetry, privacy-signal, and serious/critical
+  accessibility checks.
 - `.github/workflows/docker-publish.yml` publishes tagged Docker images to
   GHCR.
 - `.github/workflows/ecr-publish.yml` is manual-only for private AWS preview

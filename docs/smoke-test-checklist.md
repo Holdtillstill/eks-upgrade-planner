@@ -60,6 +60,9 @@ Check:
 - Lifecycle, cost, planner, scanner, add-on, and evidence sections have visible
   source links.
 - Mobile viewport has no clipped dropdown text or overlapping controls.
+- Browser smoke fails on console/page errors, unexpected same-origin API calls,
+  missing visitor telemetry, privacy-signal regressions, horizontal overflow,
+  and serious/critical axe accessibility violations.
 
 ## Kubernetes Preview
 

@@ -24,6 +24,13 @@ and route-change telemetry so public portfolio traffic can be measured. The
 script should not receive pasted manifests, planner inputs, AWS account data, or
 cluster credentials.
 
+Do Not Track and Global Privacy Control are respected by default. Visitor
+notifications use masked IPs and coarse metadata such as page path, referrer
+host, safe campaign tags, derived traffic source/channel, approximate location,
+network label, browser/OS/device class, locale, viewport, and connection hints.
+Raw IP address and user agent are retained briefly for daily digest, abuse, and
+reliability analysis, then purged.
+
 ## Server Logs
 
 When served through the optional Node/Kubernetes runtime, operational logs may
