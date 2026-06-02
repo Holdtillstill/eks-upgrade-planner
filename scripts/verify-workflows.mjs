@@ -89,6 +89,8 @@ assertAll(
     "aws cloudfront create-invalidation",
     "aws cloudfront wait invalidation-completed",
     "--query 'Invalidation.Id'",
+    "GetInvalidation is unavailable",
+    "sleep 30",
     "WEB_BASE=\"${SITE_URL}\" npm run smoke:static-host",
     "WEB_BASE=\"${SITE_URL}\" npm run smoke:browser-host",
   ],
