@@ -1,13 +1,5 @@
 # EKS Upgrade Planner
 
-[![CI](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml)
-[![Static deploy](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-deploy.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-deploy.yml)
-[![Static smoke](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-smoke.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-smoke.yml)
-[![Data refresh](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/eks-data-refresh.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/eks-data-refresh.yml)
-[![Dependency audit](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/dependency-audit.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/dependency-audit.yml)
-[![Security](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/security.yml)
-[![Secret scan](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/secret-scan.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/secret-scan.yml)
-
 A public, static-heavy web tool for planning Amazon EKS upgrades before they
 become extended-support bills or risky change windows.
 
