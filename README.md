@@ -7,6 +7,10 @@ become extended-support bills or risky change windows.
 
 ![EKS Upgrade Planner overview](docs/assets/eks-upgrade-planner-overview.png)
 
+## AI-Assisted Development Disclosure
+
+This repository was developed with AI coding assistance. The product direction, architecture decisions, validation, deployment, operations, and maintenance are my responsibility.
+
 ## What it includes
 
 - EKS lifecycle table with cited static data.
