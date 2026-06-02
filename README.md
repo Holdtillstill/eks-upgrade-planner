@@ -13,6 +13,15 @@ This project was built with AI-assisted coding support. Product direction,
 architecture, validation, deployment choices, operations, and maintenance remain
 my responsibility.
 
+## Public status
+
+| Surface | Status | Notes |
+| --- | --- | --- |
+| Static planner | Public static host | `eks-upgrade-planner.bozhi.dev` serves the planner, route-specific static HTML, and browser-local tools. |
+| Data freshness | Scheduled check | CI compares checked-in EKS lifecycle data with AWS and endoflife.date sources and opens PRs only when content changes. |
+| Container and Helm | Build validated | CI builds and scans the image and renders the Helm chart for preview packaging. |
+| EKS runtime preview | Request-only | Shared EKS previews are short-lived validation windows, not always-on infrastructure. |
+
 ## What it includes
 
 - EKS lifecycle table with cited static data.
@@ -168,8 +177,10 @@ GitHub workflows:
 - `.github/workflows/static-deploy.yml` deploys `dist/` to S3 and invalidates
   CloudFront using GitHub OIDC. It expects public repository variables
   `AWS_REGION` and `SITE_URL`, plus Actions secrets `AWS_ROLE_TO_ASSUME`,
-  `STATIC_SITE_BUCKET`, and `CLOUDFRONT_DISTRIBUTION_ID`. It is manual until
-  AWS bootstrap resources and GitHub configuration exist.
+  `STATIC_SITE_BUCKET`, and `CLOUDFRONT_DISTRIBUTION_ID`. After AWS bootstrap
+  resources and GitHub configuration exist, it deploys on relevant pushes to
+  `main` and uses the `static-production` environment so reviewer protection can
+  be enabled before public AWS surfaces are changed.
 - `.github/workflows/docker-publish.yml` publishes tagged Docker images to
   GHCR.
 - `.github/workflows/ecr-publish.yml` is manual-only for private AWS preview
@@ -208,7 +219,9 @@ approving production upgrades.
 
 The public site also loads first-party pageview telemetry from
 `on-demand-demos.bozhi.dev` to understand basic route traffic. Pasted manifests,
-fleet rows, and planner inputs remain browser-local. See `docs/privacy.md`.
+fleet rows, and planner inputs remain browser-local. Do Not Track and Global
+Privacy Control signals are respected by the shared first-party tracker. See
+`docs/privacy.md`.
 
 EKS lifecycle freshness is guarded by `scripts/sync-eks-data.js`:
 

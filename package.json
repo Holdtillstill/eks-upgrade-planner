@@ -14,6 +14,7 @@
     "validate:actions-secrets": "node scripts/validate-actions-secrets.js",
     "validate:edge-security": "node scripts/validate-edge-security.js",
     "validate:static-hosting": "node scripts/validate-static-hosting.js",
+    "validate:workflows": "node scripts/verify-workflows.mjs",
     "smoke:static-host": "node scripts/smoke-static-host.mjs",
     "prerender": "node scripts/prerender-static.js",
     "prebuild": "SITE_URL_BUILD_MODE=production npm run generate:public-metadata",
