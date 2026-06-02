@@ -43,9 +43,11 @@ jobs:
 
       - name: Validate refreshed app
         run: |
+          npm run check:public-readiness
           npm test
           npm run lint
           npm run build
+          npm run validate:static-hosting
 
       - name: Open data refresh pull request
         if: steps.data_changes.outputs.changed == 'true'
