@@ -86,9 +86,10 @@ expired previews so they do not become permanent monthly spend.
 
 Preview images are tagged `preview-<run id>-<attempt>` and labeled with their
 expiry timestamp. Namespace TTL cleanup does not delete registry layers by
-itself, so keep a GHCR/ECR retention policy or registry cleanup job for
-`preview-*` tags. Keep release tags and the long-lived `main`/SHA images
-separate from preview retention.
+itself. `.github/workflows/ghcr-preview-cleanup.yml` removes old GHCR package
+versions that have only `preview-*` tags, while preserving release tags and
+long-lived `main`/SHA images. Parent demo ECR repositories should keep their
+own lifecycle policy.
 
 ## Cloudflare Mirror
 

@@ -150,6 +150,11 @@ Run `npm run validate:edge-security` whenever `server/security.js`,
 CloudFront Function and response header policy changes require a Terraform
 apply before production edge behavior changes.
 
+Preview image retention is split by registry. The direct GHCR preview workflow
+labels `preview-*` images and `.github/workflows/ghcr-preview-cleanup.yml`
+removes old preview-only package versions. The parent demo platform owns ECR
+lifecycle policy for shared full-stack preview images.
+
 ## Privacy and Logging
 
 Planner inputs and pasted manifests are processed in the browser and are not

@@ -1,0 +1,101 @@
+name: Cleanup GHCR preview images
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report deletions without deleting package versions.
+        required: true
+        type: boolean
+        default: true
+      keep:
+        description: Number of newest preview image versions to keep.
+        required: true
+        default: "12"
+      min_age_days:
+        description: Minimum preview image age before cleanup can delete it.
+        required: true
+        default: "7"
+  schedule:
+    - cron: "41 6 * * 0"
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old preview-only package versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          PACKAGE_NAME: ${{ github.event.repository.name }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          KEEP: ${{ github.event_name == 'workflow_dispatch' && inputs.keep || '12' }}
+          MIN_AGE_DAYS: ${{ github.event_name == 'workflow_dispatch' && inputs.min_age_days || '7' }}
+        run: |
+          python3 - <<'PY'
+          import datetime as dt
+          import json
+          import os
+          import subprocess
+          import sys
+
+          owner = os.environ["OWNER"]
+          package_name = os.environ["PACKAGE_NAME"]
+          dry_run = os.environ.get("DRY_RUN", "false").lower() == "true"
+          keep = int(os.environ.get("KEEP", "12"))
+          min_age_days = int(os.environ.get("MIN_AGE_DAYS", "7"))
+
+          owner_type = subprocess.check_output(
+              ["gh", "api", f"/users/{owner}", "--jq", ".type"],
+              text=True,
+          ).strip()
+          if owner_type == "Organization":
+              package_root = f"/orgs/{owner}/packages/container/{package_name}/versions"
+          else:
+              package_root = f"/users/{owner}/packages/container/{package_name}/versions"
+
+          output = subprocess.check_output(
+              ["gh", "api", "--paginate", package_root, "--jq", ".[] | @json"],
+              text=True,
+          )
+          versions = [json.loads(line) for line in output.splitlines() if line.strip()]
+
+          preview_versions = []
+          for version in versions:
+              tags = version.get("metadata", {}).get("container", {}).get("tags", [])
+              if not tags:
+                  continue
+              if not any(tag.startswith("preview-") for tag in tags):
+                  continue
+              if any(not tag.startswith("preview-") for tag in tags):
+                  print(f"Skipping version {version['id']}: has protected non-preview tags {tags}")
+                  continue
+              created_at = dt.datetime.fromisoformat(version["created_at"].replace("Z", "+00:00"))
+              preview_versions.append((created_at, version["id"], tags))
+
+          preview_versions.sort(reverse=True)
+          cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=min_age_days)
+          candidates = [
+              item for index, item in enumerate(preview_versions)
+              if index >= keep and item[0] <= cutoff
+          ]
+
+          print(
+              f"Found {len(preview_versions)} preview-only package version(s); "
+              f"{len(candidates)} eligible for cleanup. dry_run={dry_run}"
+          )
+          for created_at, version_id, tags in candidates:
+              print(f"{'Would delete' if dry_run else 'Deleting'} version {version_id} from {created_at.isoformat()} tags={tags}")
+              if not dry_run:
+                  subprocess.check_call(["gh", "api", "-X", "DELETE", f"{package_root}/{version_id}"])
+
+          if candidates and dry_run:
+              sys.exit(0)
+          PY
