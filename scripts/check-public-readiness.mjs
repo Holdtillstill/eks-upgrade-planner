@@ -59,6 +59,7 @@ const issueTemplateConfigPath = path.join(root, ".github/ISSUE_TEMPLATE/config.y
 const contributingPath = path.join(root, "CONTRIBUTING.md")
 const codeOfConductPath = path.join(root, "CODE_OF_CONDUCT.md")
 const dependabotPath = path.join(root, ".github/dependabot.yml")
+const privacyPath = path.join(root, "docs/privacy.md")
 
 function relative(filePath) {
   return path.relative(root, filePath)
@@ -137,6 +138,15 @@ if (fs.existsSync(robotsPath)) {
 
 if (!fs.existsSync(sitemapPath)) {
   findings.push("public/sitemap.xml: missing")
+}
+
+if (fs.existsSync(privacyPath)) {
+  const privacy = fs.readFileSync(privacyPath, "utf8")
+  for (const marker of ["Do Not Track", "Global Privacy Control", "Raw IP address and user agent"]) {
+    if (!privacy.includes(marker)) findings.push(`docs/privacy.md: missing visitor privacy marker ${marker}`)
+  }
+} else {
+  findings.push("docs/privacy.md: missing")
 }
 
 if (fs.existsSync(issueTemplateConfigPath)) {
