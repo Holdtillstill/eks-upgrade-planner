@@ -38,7 +38,16 @@ lighthouse-*.json
 **/.terraform/*
 *.tfstate
 *.tfstate.*
+*.tfplan
 *.tfvars
 !*.tfvars.example
+*.auto.tfvars
+*.auto.tfvars.json
 crash.log
 crash.*.log
+
+# Browser smoke and local test artifacts
+playwright-report/
+test-results/
+smoke-artifacts/
+*.har

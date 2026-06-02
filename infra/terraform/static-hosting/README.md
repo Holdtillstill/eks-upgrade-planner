@@ -11,6 +11,8 @@ production host:
 - strict security response headers
 - clean URL rewrite for prerendered routes such as `/eks/versions`
 - `403`/`404` mapping to the generated `404.html` noindex page
+- optional AWS WAF attachment through `web_acl_id` when a shared web ACL is
+  already approved and paid for
 
 It intentionally does **not** create the Terraform backend, GitHub OIDC
 provider, deploy IAM role, hosted zone, EKS cluster, ingress, budgets, or TTL
@@ -28,6 +30,9 @@ terraform plan
 
 Do not run `terraform apply` until DNS ownership, GitHub OIDC, and cost limits
 are ready.
+
+Set `web_acl_id` only when the shared edge WAF has been approved. Leaving it
+empty keeps the static site on the cheaper CloudFront-only path.
 
 ## GitHub Actions Outputs
 

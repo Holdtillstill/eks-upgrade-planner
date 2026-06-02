@@ -53,6 +53,7 @@ Create/plan app-specific resources in `infra/terraform/static-hosting`:
 - CloudFront response headers policy matching `server/security.js`
 - CloudFront Function clean URL rewrite
 - custom error mapping to `/404.html`
+- optional `web_acl_id` attachment for a pre-approved shared AWS WAF web ACL
 
 Run `npm run validate:edge-security` after changing `server/security.js`,
 `infra/cloudfront/clean-url-rewrite.js`, or static-hosting Terraform. If the
@@ -75,6 +76,9 @@ Use GitHub OIDC. Do not create long-lived AWS access keys. Keep account-scoped
 identifiers such as role ARNs, bucket names, distribution IDs, hosted zone IDs,
 EKS cluster names, and Cloudflare account/project identifiers in Actions
 secrets, not repository variables.
+
+If WAF is enabled for the portfolio edge, pass the shared web ACL ARN through
+`web_acl_id`. Keep it empty for the lowest-cost static host.
 
 ## EKS Preview
 
