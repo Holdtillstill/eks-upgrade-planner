@@ -168,4 +168,11 @@ for (const name of ["docker-publish.yml", "ecr-publish.yml"]) {
   )
 }
 
+const ecrPublish = await readWorkflow("ecr-publish.yml")
+assertAll(
+  ecrPublish,
+  ["workflow_dispatch:", "aws-actions/configure-aws-credentials@v6", "mask-aws-account-id: true"],
+  "ecr-publish.yml",
+)
+
 console.log("workflow contracts passed")
