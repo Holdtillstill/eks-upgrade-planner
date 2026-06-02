@@ -182,6 +182,12 @@ if (fs.existsSync(dependabotPath)) {
       findings.push(`.github/dependabot.yml: missing grouped update rule ${group}`)
     }
   }
+  const terraformBlock = dependabot.match(
+    /- package-ecosystem: terraform\n\s+directory: [^\n]+\n(?<block>.*?)(?=\n\s+- package-ecosystem:|$)/s,
+  )?.groups?.block || ""
+  if (!terraformBlock.includes("version-update:semver-major")) {
+    findings.push(".github/dependabot.yml: Terraform updates must ignore semver-major changes")
+  }
 } else {
   findings.push(".github/dependabot.yml: missing")
 }
