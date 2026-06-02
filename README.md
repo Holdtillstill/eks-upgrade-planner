@@ -1,6 +1,6 @@
 # EKS Upgrade Planner
 
-[![CI](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml)
+[![CI](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml)
 
 A public, static-heavy web tool for planning Amazon EKS upgrades before they
 become extended-support bills or risky change windows.
@@ -33,7 +33,7 @@ Open: http://127.0.0.1:5173/
 Build the Vite app and serve it with the production server:
 
 ```bash
-SITE_URL=https://planner.example.com npm run build
+SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build
 PORT=8080 NODE_ENV=production METRICS_BEARER_TOKEN="$(openssl rand -hex 24)" npm start
 ```
 
@@ -76,7 +76,7 @@ unauthenticated metrics are acceptable.
 
 ```bash
 docker build \
-  --build-arg SITE_URL=https://planner.example.com \
+  --build-arg SITE_URL=https://eks-upgrade-planner.bozhi.dev \
   --build-arg APP_VERSION=0.1.0 \
   --build-arg SOURCE_VERSION="$(git rev-parse --short HEAD)" \
   --build-arg BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
@@ -97,7 +97,7 @@ resources:
 ```bash
 export IMAGE_REPOSITORY=ghcr.io/acme/eks-upgrade-planner
 export IMAGE_TAG=0.1.0
-export SITE_URL=https://planner.example.com
+export SITE_URL=https://eks-upgrade-planner.bozhi.dev
 
 helm upgrade --install eks-upgrade-planner deploy/helm/eks-upgrade-planner \
   --namespace eks-upgrade-planner \
@@ -132,7 +132,7 @@ Local/demo values live in `deploy/observability`. See
 
 ```bash
 npm test
-SITE_URL=https://planner.example.com npm run build
+SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build
 npm run validate:static-hosting
 npm run lint
 npm run smoke:local
@@ -150,9 +150,9 @@ This repo is structured for a hybrid ownership model:
 
 - App repo: product code, Dockerfile, Helm chart, app CI/CD, static-hosting
   Terraform, Cloudflare mirror workflow, and optional EKS preview workflow.
-- Shared infra repo: Route 53 hosted zone, Terraform backend, GitHub OIDC
-  provider/roles, shared EKS cluster, shared ingress/ALB, preview cleanup, and
-  budgets.
+- Platform infrastructure: Route 53 hosted zone, Terraform backend, GitHub OIDC
+  provider/roles, optional shared EKS preview capacity, ingress, preview
+  cleanup, and budgets.
 
 GitHub workflows:
 
@@ -166,9 +166,8 @@ GitHub workflows:
   bootstrap resources and repository variables exist.
 - `.github/workflows/docker-publish.yml` publishes tagged Docker images to
   GHCR.
-- `.github/workflows/eks-preview.yml` builds a preview image and deploys the
-  Helm chart into a shared EKS namespace with TTL annotations for external
-  cleanup automation.
+- `.github/workflows/eks-preview.yml` builds a preview image and can deploy the
+  Helm chart into a short-lived shared EKS namespace for demo/review only.
 - `.github/workflows/cloudflare-pages.yml` optionally deploys the built static
   output to a Cloudflare Pages mirror.
 - `.github/workflows/eks-data-refresh.yml` opens scheduled data refresh PRs
@@ -178,8 +177,8 @@ App-specific AWS static hosting Terraform lives in
 `infra/terraform/static-hosting`. It plans a private S3 bucket, CloudFront,
 Origin Access Control, ACM certificate, Route 53 records, strict response
 headers, clean URL rewrites for prerendered routes, and static `404.html`
-mapping. It is intentionally plan-only until the shared infra bootstrap and
-deployment role exist.
+mapping. It is intentionally plan-only until DNS, GitHub OIDC, and deployment
+role prerequisites exist.
 
 The static build also writes `dist/404.html` and `dist/_headers`. `404.html`
 keeps unknown extensionless routes as real noindex 404s when CloudFront maps S3

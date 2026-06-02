@@ -11,7 +11,7 @@ variable "aws_region" {
 }
 
 variable "site_domain" {
-  description = "Primary public hostname, for example planner.example.com."
+  description = "Primary public hostname, for example eks-upgrade-planner.bozhi.dev."
   type        = string
 
   validation {
@@ -21,13 +21,13 @@ variable "site_domain" {
 }
 
 variable "additional_aliases" {
-  description = "Additional CloudFront aliases, such as www.planner.example.com."
+  description = "Additional CloudFront aliases, such as www.eks-upgrade-planner.bozhi.dev."
   type        = list(string)
   default     = []
 }
 
 variable "hosted_zone_id" {
-  description = "Route 53 hosted zone ID owned by the shared infra repo."
+  description = "Route 53 hosted zone ID supplied at plan/apply time."
   type        = string
 }
 

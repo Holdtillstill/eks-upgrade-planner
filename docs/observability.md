@@ -52,7 +52,7 @@ topk(10, sum by (route) (rate(http_requests_total[10m])))
 Run the production server:
 
 ```bash
-SITE_URL=https://planner.example.com npm run build
+SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build
 PORT=8080 NODE_ENV=production METRICS_BEARER_TOKEN=dev-secret npm start
 ```
 

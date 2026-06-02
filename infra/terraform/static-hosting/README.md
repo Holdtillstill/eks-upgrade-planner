@@ -12,9 +12,9 @@ production host:
 - clean URL rewrite for prerendered routes such as `/eks/versions`
 - `403`/`404` mapping to the generated `404.html` noindex page
 
-It intentionally does **not** create the shared Terraform backend, GitHub OIDC
-provider, deploy IAM role, hosted zone, EKS cluster, shared ingress, budgets, or
-TTL cleanup. Those belong in the shared infra repo.
+It intentionally does **not** create the Terraform backend, GitHub OIDC
+provider, deploy IAM role, hosted zone, EKS cluster, ingress, budgets, or TTL
+cleanup. Those prerequisites are handled outside this app-specific plan.
 
 ## Plan Only
 
@@ -26,8 +26,8 @@ terraform init
 terraform plan
 ```
 
-Do not run `terraform apply` until the shared infra bootstrap exists and the
-domain/cost plan has been approved.
+Do not run `terraform apply` until DNS ownership, GitHub OIDC, and cost limits
+are ready.
 
 ## GitHub Actions Outputs
 
@@ -35,7 +35,7 @@ After apply, set these app repository variables from the `github_actions_variabl
 output:
 
 - `AWS_REGION`
-- `AWS_ROLE_TO_ASSUME` from the shared infra OIDC deploy role
+- `AWS_ROLE_TO_ASSUME` from the GitHub OIDC deploy role
 - `CLOUDFRONT_DISTRIBUTION_ID`
 - `SITE_URL`
 - `STATIC_SITE_BUCKET`

@@ -34,5 +34,4 @@ with traffic and deploy frequency.
 - Amazon Route 53 pricing: https://aws.amazon.com/route53/pricing/
 - Amazon EKS pricing: https://aws.amazon.com/eks/pricing/
 
-Use AWS Budgets in the shared infra bootstrap before applying any production
-infrastructure.
+Use AWS Budgets before applying any production infrastructure.

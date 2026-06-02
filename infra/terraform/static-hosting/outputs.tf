@@ -19,7 +19,7 @@ output "site_aliases" {
 }
 
 output "github_actions_variables" {
-  description = "Repository variables consumed by .github/workflows/static-deploy.yml. The OIDC role is owned by shared infra."
+  description = "Repository variables consumed by .github/workflows/static-deploy.yml. The OIDC role is supplied separately."
   value = {
     AWS_REGION                 = var.aws_region
     CLOUDFRONT_DISTRIBUTION_ID = aws_cloudfront_distribution.site.id

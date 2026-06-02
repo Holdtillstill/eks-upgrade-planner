@@ -3,14 +3,14 @@
 ## Recommended Shape
 
 Use S3 and CloudFront as the primary public production surface. Keep EKS for
-on-demand demos/previews, and use Cloudflare Pages as an optional mirror or
+on-demand demos/previews only, and use Cloudflare Pages as an optional mirror or
 learning path.
 
 ```text
 Route 53
-  ├─ planner.example.com -> CloudFront + private S3
-  ├─ demo.example.com    -> shared EKS ingress when preview is active
-  └─ cf.example.com      -> Cloudflare Pages mirror
+  ├─ eks-upgrade-planner.bozhi.dev -> CloudFront + private S3
+  ├─ preview host                 -> EKS ingress only while requested
+  └─ optional mirror              -> Cloudflare Pages
 ```
 
 This app has no database, no user accounts, and no server-side AWS account
@@ -19,17 +19,16 @@ always-on dedicated EKS stack.
 
 ## Repository Ownership
 
-Hybrid split:
+Ownership split:
 
 - This app repo owns product code, static-hosting Terraform, Docker image build,
   Helm chart, app deploy workflows, and EKS preview workflow.
-- The shared infra repo owns Route 53 hosted zone, Terraform backend, GitHub
-  OIDC provider/roles, shared EKS, ingress/ALB, budgets, and preview TTL
-  cleanup.
+- Platform infrastructure owns Route 53 hosted zone, Terraform backend, GitHub
+  OIDC provider/roles, optional shared EKS preview capacity, ingress, budgets,
+  and preview TTL cleanup.
 
-Keep Terraform state for shared/platform primitives in the shared infra repo.
-Keep the app-specific S3/CloudFront/ACM/Route53 records with this app unless
-the infra repo later standardizes a reusable static-site module.
+Keep app-specific S3/CloudFront/ACM/Route53 records with this app unless a
+shared static-site module becomes the standard.
 
 ## First AWS Phase
 
@@ -40,7 +39,7 @@ Bootstrap only:
 3. GitHub OIDC provider and narrow deploy roles.
 4. Route 53 hosted zone ownership and DNS conventions.
 
-Do not create EKS resources for this app in phase one.
+Do not create always-on EKS resources for this app.
 
 ## Static Production Deploy
 
@@ -67,16 +66,17 @@ Use GitHub OIDC. Do not create long-lived AWS access keys.
 
 ## EKS Preview
 
-The app repo can build a preview image and deploy the Helm chart to a shared EKS
-cluster with `.github/workflows/eks-preview.yml`. Required repository variables:
+The app repo can build a preview image and deploy the Helm chart to shared EKS
+capacity with `.github/workflows/eks-preview.yml`. This path is for explicit
+demo/review requests, not normal public serving. Required repository variables:
 
 - `EKS_PREVIEW_AWS_ROLE_TO_ASSUME`
 - `EKS_CLUSTER_NAME`
 - `AWS_REGION`
 
 The workflow annotates the namespace with
-`preview.eks-upgrade-planner.io/expires-at`. Cleanup should be owned by shared
-infra automation so previews do not become permanent monthly spend.
+`preview.eks-upgrade-planner.io/expires-at`. Cleanup automation should remove
+expired previews so they do not become permanent monthly spend.
 
 ## Cloudflare Mirror
 
@@ -88,7 +88,8 @@ The Cloudflare Pages workflow is optional and manual. It expects:
 - optional repository variable `CLOUDFLARE_SITE_URL`
 
 Keep Route 53 authoritative unless there is a deliberate decision to move DNS.
-Cloudflare is cleanest as a subdomain mirror such as `cf.example.com`.
+Use Cloudflare as an optional mirror only after the CloudFront production path
+is working.
 
 ## Cost Posture
 

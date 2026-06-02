@@ -24,7 +24,7 @@ Verify:
 ## Static Hosting Output
 
 ```bash
-SITE_URL=https://planner.example.com npm run build
+SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build
 npm run validate:static-hosting
 ```
 
@@ -59,7 +59,7 @@ Check:
 
 ## Kubernetes Preview
 
-When a shared EKS preview is available:
+When an on-demand EKS preview is requested:
 
 - Deploy with `.github/workflows/eks-preview.yml`.
 - Confirm namespace TTL annotation `preview.eks-upgrade-planner.io/expires-at`.

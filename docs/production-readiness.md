@@ -8,7 +8,7 @@ There is no database and no backend product feature surface.
 
 Request flow:
 
-1. Build assets with `SITE_URL=https://planner.example.com npm run build`.
+1. Build assets with `SITE_URL=https://eks-upgrade-planner.bozhi.dev npm run build`.
 2. `prebuild` writes `public/robots.txt` and `public/sitemap.xml`.
 3. Vite writes the client bundle to `dist/`.
 4. `postbuild` prerenders the public route list to `dist/**/index.html`.
@@ -140,9 +140,8 @@ and `_headers` for static hosts. The Terraform plan in
   strict CSP with a first-party visitor telemetry exception and no
   `unsafe-inline`.
 
-CloudFront/S3 should be the default public host. Kubernetes remains useful as a
-shared, on-demand demo path rather than the always-on serving layer for this
-static-heavy product.
+CloudFront/S3 is the public host. Kubernetes is only an on-demand demo/review
+path, not the always-on serving layer for this static-heavy product.
 
 ## Privacy and Logging
 
@@ -154,5 +153,5 @@ trace ID, IP address, and user agent for operations, debugging, and abuse
 prevention.
 
 No cloud resources are created by local validation or by Terraform planning.
-Apply static-hosting Terraform only after the shared infra bootstrap, GitHub
-OIDC roles, and cost limits are approved.
+Apply static-hosting Terraform only after GitHub OIDC roles, DNS ownership, and
+cost limits are ready.

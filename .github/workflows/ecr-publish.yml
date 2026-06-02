@@ -23,7 +23,7 @@ env:
   AWS_REGION: us-west-2
   AWS_ROLE_TO_ASSUME: ${{ vars.ECR_AWS_ROLE_TO_ASSUME }}
   ECR_REPOSITORY: eks-upgrade-planner
-  SITE_URL: http://eks-upgrade-planner.preview.bozhi.dev
+  SITE_URL: ${{ vars.EKS_PREVIEW_SITE_URL || 'https://eks-upgrade-planner-preview.bozhi.dev' }}
 
 jobs:
   publish:

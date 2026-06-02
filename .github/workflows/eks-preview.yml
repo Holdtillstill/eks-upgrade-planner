@@ -24,9 +24,9 @@ on:
         required: true
         default: '4'
       site_url:
-        description: Public preview URL used for build metadata.
+        description: On-demand preview URL used for build metadata.
         required: true
-        default: https://demo.example.com
+        default: https://eks-upgrade-planner-preview.bozhi.dev
       ingress_host:
         description: Optional ingress host. Leave blank when the shared provisioner manages routing.
         required: false

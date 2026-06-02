@@ -14,7 +14,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      SITE_URL: ${{ vars.SITE_URL || 'https://planner.example.com' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://eks-upgrade-planner.bozhi.dev' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4

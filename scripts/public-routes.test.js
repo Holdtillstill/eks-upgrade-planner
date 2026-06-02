@@ -67,7 +67,7 @@ describe('public SEO routes', () => {
 
   it('has route-specific metadata and crawlable body copy for every route', () => {
     for (const route of publicRoutes) {
-      const html = renderRouteHtml(baseHtml, route, 'https://planner.example.com');
+      const html = renderRouteHtml(baseHtml, route, 'https://eks-upgrade-planner.bozhi.dev');
       const body = renderSeoBody(route);
 
       expect(html).toContain(`<title>${route.title}</title>`);
@@ -82,9 +82,9 @@ describe('public SEO routes', () => {
     const guide = publicRoutes.find((route) => route.path === '/eks/1-35-upgrade-guide');
     expect(guide).toBeDefined();
 
-    const html = renderRouteHtml(baseHtml, guide, 'https://planner.example.com/');
+    const html = renderRouteHtml(baseHtml, guide, 'https://eks-upgrade-planner.bozhi.dev/');
 
-    expect(html).toContain('<link rel="canonical" href="https://planner.example.com/eks/1-35-upgrade-guide" />');
+    expect(html).toContain('<link rel="canonical" href="https://eks-upgrade-planner.bozhi.dev/eks/1-35-upgrade-guide" />');
     expect(html).toContain('<meta property="og:title" content="EKS 1.35 Upgrade Guide | Lifecycle, Cost, APIs, and Add-ons" />');
     expect(html).toContain('<meta name="twitter:description" content="Source-cited EKS 1.35 upgrade guide');
     expect(html).toContain('<h1>EKS 1.35 upgrade guide</h1>');
@@ -99,8 +99,8 @@ describe('public SEO routes', () => {
 
   it('can re-render an already-prerendered route file', () => {
     const route = publicRoutes.find((candidate) => candidate.path === '/app');
-    const firstPass = renderRouteHtml(baseHtml, route, 'https://planner.example.com');
-    const secondPass = renderRouteHtml(firstPass, route, 'https://planner.example.com');
+    const firstPass = renderRouteHtml(baseHtml, route, 'https://eks-upgrade-planner.bozhi.dev');
+    const secondPass = renderRouteHtml(firstPass, route, 'https://eks-upgrade-planner.bozhi.dev');
 
     expect(secondPass).toContain('data-prerendered-route="/app"');
     expect(secondPass.match(/data-prerendered-route=/g)).toHaveLength(1);
@@ -109,7 +109,7 @@ describe('public SEO routes', () => {
 
   it('keeps prerendered HTML compatible with a strict style-src self CSP', () => {
     const route = publicRoutes.find((candidate) => candidate.path === '/eks/extended-support-cost-calculator');
-    const html = renderRouteHtml(baseHtml, route, 'https://planner.example.com');
+    const html = renderRouteHtml(baseHtml, route, 'https://eks-upgrade-planner.bozhi.dev');
 
     expect(html).not.toMatch(/\sstyle=/i);
     expect(html).not.toMatch(/<style\b/i);
@@ -120,10 +120,10 @@ describe('public SEO routes', () => {
     expect(isLocalSiteUrl('http://localhost:8080')).toBe(true);
     expect(isLocalSiteUrl('http://127.0.0.1:8080')).toBe(true);
     expect(isLocalSiteUrl('http://[::1]:8080')).toBe(true);
-    expect(isLocalSiteUrl('https://planner.example.com')).toBe(false);
+    expect(isLocalSiteUrl('https://eks-upgrade-planner.bozhi.dev')).toBe(false);
     expect(() => requireProductionSiteUrl('http://localhost:8080', { SITE_URL_BUILD_MODE: 'production' })).toThrow(/Production builds require SITE_URL/);
     expect(requireProductionSiteUrl('http://localhost:8080', { SITE_URL_BUILD_MODE: 'production', SITE_URL_ALLOW_LOCALHOST: 'true' })).toBe('http://localhost:8080');
-    expect(requireProductionSiteUrl('https://planner.example.com', { SITE_URL_BUILD_MODE: 'production' })).toBe('https://planner.example.com');
+    expect(requireProductionSiteUrl('https://eks-upgrade-planner.bozhi.dev', { SITE_URL_BUILD_MODE: 'production' })).toBe('https://eks-upgrade-planner.bozhi.dev');
   });
 });
 
