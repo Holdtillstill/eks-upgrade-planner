@@ -213,7 +213,8 @@ describe('ProductShell integration', () => {
     const links = within(sourceRail).getAllByRole('link');
     const labelToHrefs = new Map<string, Set<string>>();
 
-    expect(within(sourceRail).getByText(/verified dataset snapshot/i)).toBeTruthy();
+    expect(within(sourceRail).getByText(/dataset snapshot/i)).toBeTruthy();
+    expect(within(sourceRail).getByText(/trust model/i)).toBeTruthy();
     expect(within(sourceRail).getByText(/daily scheduled source check/i)).toBeTruthy();
 
     for (const link of links) {

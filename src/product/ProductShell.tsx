@@ -50,7 +50,7 @@ export function ProductShell({ route, setRoute, afterTabs }: { route: Extract<Ap
       <a className="product-brand" href="/app" onClick={(event) => { event.preventDefault(); navigate('/app', setRoute); }}>
         <span/>
         <strong>EKS Upgrade Planner</strong>
-        <em>local planning workspace</em>
+        <em>browser-local planner</em>
       </a>
       <ProductTabs active={route.tab} guideVersion={displayedGuideVersion} setRoute={setRoute}/>
       {afterTabs}
@@ -59,13 +59,13 @@ export function ProductShell({ route, setRoute, afterTabs }: { route: Extract<Ap
     <div className="product-main" id="main-content" tabIndex={-1}>
       <header className="product-topbar">
         <div>
-          <span className="eyebrow">Local SPA · No AWS Account Access</span>
+          <span className="eyebrow">Browser-local · no AWS account access</span>
           <strong>{selectedScopeLabel}</strong>
         </div>
         <div className="topbar-status">
           <StatusPill version={selectedVersion}/>
           <span>{selectedVersion.standardSupportEnd} standard end</span>
-          <span>{scannerFindings.length} API finding(s)</span>
+          <span>{scannerFindings.length} deprecated API finding(s)</span>
         </div>
       </header>
 

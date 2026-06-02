@@ -37,18 +37,18 @@ export function SourceRail({ currentVersion, scannerFindings }: { currentVersion
   const sources = uniqueSources();
   return <aside className="product-sources source-rail" aria-label="Dataset snapshot and source links">
     <div className="rail-block rail-release">
-      <span className="eyebrow">Release Source Rail</span>
+      <span className="eyebrow">Dataset and sources</span>
       <strong>EKS {currentVersion}</strong>
-      <p>{scannerFindings} local API finding(s) attached to the workspace state.</p>
+      <p>{scannerFindings} deprecated API finding(s) attached to the workspace state.</p>
     </div>
     <div>
-      <span className="eyebrow">Verified Dataset Snapshot</span>
+      <span className="eyebrow">Dataset snapshot</span>
       <strong>{dataFreshness.checkedAt}</strong>
       <p>{dataFreshness.note}</p>
       <p>{dataFreshness.verificationCadence}</p>
     </div>
     <div className="trust-box">
-      <span className="eyebrow">Trust Model</span>
+      <span className="eyebrow">Trust model</span>
       <p>Planner inputs and pasted manifests run locally in the browser. No AWS APIs, product accounts, credentials, cluster discovery, or manifest upload are used or stored.</p>
       <p>Production request logs may include path, IP address, and user agent for operations and abuse prevention.</p>
       <p>Cost values are estimates for the EKS control-plane support tier only. Releases past extended support are flagged as automatic-upgrade risk instead of zero-cost choices.</p>

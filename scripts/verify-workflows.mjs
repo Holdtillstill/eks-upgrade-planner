@@ -87,6 +87,8 @@ assertAll(
     "mask-aws-account-id: true",
     "aws s3 sync dist/",
     "aws cloudfront create-invalidation",
+    "aws cloudfront wait invalidation-completed",
+    "--query 'Invalidation.Id'",
     "WEB_BASE=\"${SITE_URL}\" npm run smoke:static-host",
     "WEB_BASE=\"${SITE_URL}\" npm run smoke:browser-host",
   ],
@@ -104,6 +106,24 @@ assertAll(
     "WEB_BASE=\"${SITE_URL}\" npm run smoke:browser-host",
   ],
   "static-smoke.yml",
+)
+
+const cloudflarePages = await readWorkflow("cloudflare-pages.yml")
+assertAll(
+  cloudflarePages,
+  [
+    "CLOUDFLARE_SITE_URL",
+    "npm ci --include=optional",
+    "require('lightningcss')",
+    "npx playwright install --with-deps chromium",
+    "npm run validate:edge-security",
+    "npm run build",
+    "npm run validate:static-hosting",
+    "wrangler pages deploy",
+    "WEB_BASE=\"${SITE_URL}\" npm run smoke:static-host",
+    "WEB_BASE=\"${SITE_URL}\" npm run smoke:browser-host",
+  ],
+  "cloudflare-pages.yml",
 )
 
 const dataRefresh = await readWorkflow("eks-data-refresh.yml")
