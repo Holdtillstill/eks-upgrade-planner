@@ -198,6 +198,10 @@ that may include request path, status, IP address, and user agent. Verify all
 lifecycle/pricing/addon guidance against AWS and upstream project docs before
 approving production upgrades.
 
+The public site also loads first-party pageview telemetry from
+`on-demand-demos.bozhi.dev` to understand basic route traffic. Pasted manifests,
+fleet rows, and planner inputs remain browser-local. See `docs/privacy.md`.
+
 EKS lifecycle freshness is guarded by `scripts/sync-eks-data.js`:
 
 ```bash
