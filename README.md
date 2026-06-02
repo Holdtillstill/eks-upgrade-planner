@@ -1,6 +1,12 @@
 # EKS Upgrade Planner
 
 [![CI](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/ci.yml)
+[![Static deploy](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-deploy.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-deploy.yml)
+[![Static smoke](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-smoke.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/static-smoke.yml)
+[![Data refresh](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/eks-data-refresh.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/eks-data-refresh.yml)
+[![Dependency audit](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/dependency-audit.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/dependency-audit.yml)
+[![Security](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/security.yml)
+[![Secret scan](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/secret-scan.yml/badge.svg?branch=main)](https://github.com/Holdtillstill/eks-upgrade-planner/actions/workflows/secret-scan.yml)
 
 A public, static-heavy web tool for planning Amazon EKS upgrades before they
 become extended-support bills or risky change windows.
@@ -152,6 +158,7 @@ npm run build
 npm run validate:static-hosting
 npm run lint
 npm run smoke:local
+npm run smoke:browser-host
 ```
 
 Run `npm run smoke:local` while the production server is already listening on
@@ -175,6 +182,10 @@ GitHub workflows:
 - `.github/workflows/ci.yml` runs tests, lint, typecheck, edge-security drift
   checks, production build, static-host validation, Docker build, and image
   scanning on pushes and pull requests.
+- `.github/workflows/dependency-audit.yml`, `.github/workflows/security.yml`,
+  and `.github/workflows/secret-scan.yml` run npm audit, Dependency Review for
+  public pull requests, Trivy filesystem/secret/misconfiguration scans, and
+  Gitleaks with an additional committed-cloud-identifier guard.
 - `.github/workflows/static-deploy.yml` deploys `dist/` to S3 and invalidates
   CloudFront using GitHub OIDC. It expects public repository variables
   `AWS_REGION` and `SITE_URL`, plus Actions secrets `AWS_ROLE_TO_ASSUME`,
@@ -183,6 +194,8 @@ GitHub workflows:
   `main`. If GitHub environment reviewer protection is enabled later, update the
   AWS OIDC trust policy for that environment-specific subject before adding an
   `environment` binding to this job.
+- `.github/workflows/static-smoke.yml` runs scheduled HTTP and Chromium browser
+  smoke against the public static host and selected deep links.
 - `.github/workflows/docker-publish.yml` publishes tagged Docker images to
   GHCR.
 - `.github/workflows/ecr-publish.yml` is manual-only for private AWS preview

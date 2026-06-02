@@ -15,6 +15,7 @@ const expectedWorkflows = [
   "secret-scan.yml",
   "security.yml",
   "static-deploy.yml",
+  "static-smoke.yml",
 ]
 
 function assertIncludes(text, needle, context) {
@@ -86,6 +87,19 @@ assertAll(
     "WEB_BASE=\"${SITE_URL}\" npm run smoke:static-host",
   ],
   "static-deploy.yml",
+)
+
+const staticSmoke = await readWorkflow("static-smoke.yml")
+assertAll(
+  staticSmoke,
+  [
+    "schedule:",
+    "SITE_URL",
+    "npx playwright install --with-deps chromium",
+    "WEB_BASE=\"${SITE_URL}\" npm run smoke:static-host",
+    "WEB_BASE=\"${SITE_URL}\" npm run smoke:browser-host",
+  ],
+  "static-smoke.yml",
 )
 
 const dataRefresh = await readWorkflow("eks-data-refresh.yml")

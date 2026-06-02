@@ -1,0 +1,36 @@
+name: Static Host Smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "29 14 * * *"
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  SITE_URL: ${{ vars.SITE_URL || 'https://eks-upgrade-planner.bozhi.dev' }}
+
+jobs:
+  smoke-static-host:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Smoke public static host
+        run: WEB_BASE="${SITE_URL}" npm run smoke:static-host
+
+      - name: Smoke browser rendering
+        run: WEB_BASE="${SITE_URL}" npm run smoke:browser-host
