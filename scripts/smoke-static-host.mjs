@@ -69,6 +69,10 @@ async function assertPublicRoute(route) {
   const result = await fetchText(route.path);
   assert(result.status === 200, `${route.path} should return 200, got ${result.status}`);
   assert(result.contentType.toLowerCase().includes('text/html'), `${route.path} should return HTML, got ${result.contentType}`);
+  if (route.path !== '/') {
+    const cacheHeader = result.headers['x-cache'] || '';
+    assert(!/error from cloudfront/i.test(cacheHeader), `${route.path} should use clean CloudFront routing, got x-cache="${cacheHeader}"`);
+  }
   assert(result.body.includes(`data-prerendered-route="${route.path}"`), `${route.path} should include prerender marker`);
   assert(result.body.includes('src="https://on-demand-demos.bozhi.dev/visitor.js"'), `${route.path} should include visitor script`);
   assert(result.body.includes('data-project="eks-upgrade-planner"'), `${route.path} should include visitor project id`);
