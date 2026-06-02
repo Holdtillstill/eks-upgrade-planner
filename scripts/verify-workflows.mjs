@@ -69,7 +69,6 @@ assertAll(
   staticDeploy,
   [
     "permissions:\n  contents: read\n  id-token: write",
-    "environment: static-production",
     "AWS_ROLE_TO_ASSUME",
     "CLOUDFRONT_DISTRIBUTION_ID",
     "STATIC_SITE_BUCKET",

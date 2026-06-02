@@ -179,8 +179,9 @@ GitHub workflows:
   `AWS_REGION` and `SITE_URL`, plus Actions secrets `AWS_ROLE_TO_ASSUME`,
   `STATIC_SITE_BUCKET`, and `CLOUDFRONT_DISTRIBUTION_ID`. After AWS bootstrap
   resources and GitHub configuration exist, it deploys on relevant pushes to
-  `main` and uses the `static-production` environment so reviewer protection can
-  be enabled before public AWS surfaces are changed.
+  `main`. If GitHub environment reviewer protection is enabled later, update the
+  AWS OIDC trust policy for that environment-specific subject before adding an
+  `environment` binding to this job.
 - `.github/workflows/docker-publish.yml` publishes tagged Docker images to
   GHCR.
 - `.github/workflows/ecr-publish.yml` is manual-only for private AWS preview
