@@ -4,7 +4,8 @@ This roadmap tracks public product improvements for the EKS Upgrade Planner. It 
 
 ## Product Trust
 
-- Keep the visible data freshness date tied to the scheduled EKS data refresh workflow.
+- Keep the visible dataset snapshot date aligned with checked-in EKS lifecycle
+  data, while the scheduled refresh workflow verifies live sources daily.
 - Expand add-on compatibility guidance when upstream projects publish stable compatibility matrices.
 - Add export metadata that captures tool version, data source date, and generation time.
 

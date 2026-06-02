@@ -54,6 +54,12 @@ Create/plan app-specific resources in `infra/terraform/static-hosting`:
 - CloudFront Function clean URL rewrite
 - custom error mapping to `/404.html`
 
+Run `npm run validate:edge-security` after changing `server/security.js`,
+`infra/cloudfront/clean-url-rewrite.js`, or static-hosting Terraform. If the
+CloudFront Function or response headers policy changes, run Terraform plan/apply
+for `infra/terraform/static-hosting` and then redeploy or invalidate the static
+site so edge behavior matches the repo.
+
 The deploy workflow expects these repository variables:
 
 - `AWS_ROLE_TO_ASSUME`
@@ -77,6 +83,12 @@ demo/review requests, not normal public serving. Required repository variables:
 The workflow annotates the namespace with
 `preview.eks-upgrade-planner.io/expires-at`. Cleanup automation should remove
 expired previews so they do not become permanent monthly spend.
+
+Preview images are tagged `preview-<run id>-<attempt>` and labeled with their
+expiry timestamp. Namespace TTL cleanup does not delete registry layers by
+itself, so keep a GHCR/ECR retention policy or registry cleanup job for
+`preview-*` tags. Keep release tags and the long-lived `main`/SHA images
+separate from preview retention.
 
 ## Cloudflare Mirror
 

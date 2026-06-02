@@ -139,9 +139,16 @@ and `_headers` for static hosts. The Terraform plan in
 - A response headers policy matching `server/security.js`, including a
   strict CSP with a first-party visitor telemetry exception and no
   `unsafe-inline`.
+- A CloudFront Function JSON `404` for `/api` and `/api/*`, so static hosting
+  never returns the app shell or HTML to API-style paths.
 
 CloudFront/S3 is the public host. Kubernetes is only an on-demand demo/review
 path, not the always-on serving layer for this static-heavy product.
+
+Run `npm run validate:edge-security` whenever `server/security.js`,
+`infra/cloudfront/clean-url-rewrite.js`, or static-hosting Terraform changes.
+CloudFront Function and response header policy changes require a Terraform
+apply before production edge behavior changes.
 
 ## Privacy and Logging
 

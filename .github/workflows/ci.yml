@@ -39,6 +39,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Validate edge security config
+        run: npm run validate:edge-security
+
       - name: Build
         run: npm run build
 

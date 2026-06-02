@@ -10,6 +10,7 @@
     "data:update": "node scripts/sync-eks-data.js --write",
     "generate:public-metadata": "node scripts/generate-public-metadata.js",
     "generate:edge-static": "node scripts/generate-edge-static-files.js",
+    "validate:edge-security": "node scripts/validate-edge-security.js",
     "validate:static-hosting": "node scripts/validate-static-hosting.js",
     "prerender": "node scripts/prerender-static.js",
     "prebuild": "SITE_URL_BUILD_MODE=production npm run generate:public-metadata",

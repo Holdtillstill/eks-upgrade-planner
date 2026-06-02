@@ -35,14 +35,14 @@ const productNavMeta: Record<ProductTab, { code: string; label: string; detail: 
 
 export function SourceRail({ currentVersion, scannerFindings }: { currentVersion: string; scannerFindings: number }) {
   const sources = uniqueSources();
-  return <aside className="product-sources source-rail" aria-label="Data freshness and source links">
+  return <aside className="product-sources source-rail" aria-label="Dataset snapshot and source links">
     <div className="rail-block rail-release">
       <span className="eyebrow">Release Source Rail</span>
       <strong>EKS {currentVersion}</strong>
       <p>{scannerFindings} local API finding(s) attached to the workspace state.</p>
     </div>
     <div>
-      <span className="eyebrow">Data Freshness</span>
+      <span className="eyebrow">Dataset Snapshot</span>
       <strong>{dataFreshness.checkedAt}</strong>
       <p>{dataFreshness.note}</p>
     </div>

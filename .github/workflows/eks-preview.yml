@@ -99,6 +99,12 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.image.outputs.repository }}:${{ steps.image.outputs.tag }}
+          labels: |
+            org.opencontainers.image.created=${{ steps.image.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.title=EKS Upgrade Planner preview
+            io.bozhi.preview.expires-at=${{ steps.image.outputs.expires_at }}
           build-args: |
             SITE_URL=${{ env.SITE_URL }}
             APP_VERSION=preview

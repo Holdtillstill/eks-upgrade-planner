@@ -10,7 +10,10 @@ on:
       - index.html
       - package-lock.json
       - package.json
+      - infra/cloudfront/**
+      - infra/terraform/static-hosting/**
       - public/**
+      - server/security.js
       - scripts/**
       - src/**
 
@@ -59,6 +62,7 @@ jobs:
           npm test
           npm run lint
           npm run typecheck
+          npm run validate:edge-security
 
       - name: Build static site
         run: npm run build

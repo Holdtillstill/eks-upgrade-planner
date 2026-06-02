@@ -156,9 +156,9 @@ This repo is structured for a hybrid ownership model:
 
 GitHub workflows:
 
-- `.github/workflows/ci.yml` runs data freshness checks, tests, lint,
-  typecheck, production build, and static-host validation on pushes and pull
-  requests.
+- `.github/workflows/ci.yml` runs tests, lint, typecheck, edge-security drift
+  checks, production build, static-host validation, Docker build, and image
+  scanning on pushes and pull requests.
 - `.github/workflows/static-deploy.yml` deploys `dist/` to S3 and invalidates
   CloudFront using GitHub OIDC. It expects repository variables
   `AWS_ROLE_TO_ASSUME`, `AWS_REGION`, `STATIC_SITE_BUCKET`,

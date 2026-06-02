@@ -208,7 +208,7 @@ describe('ProductShell integration', () => {
   it('uses distinct source rail labels when links point to different source pages', () => {
     const { container } = renderProductRoute('/app');
 
-    const sourceRail = container.querySelector('[aria-label="Data freshness and source links"]');
+    const sourceRail = container.querySelector('[aria-label="Dataset snapshot and source links"]');
     if (!(sourceRail instanceof HTMLElement)) throw new Error('source rail not found');
     const links = within(sourceRail).getAllByRole('link');
     const labelToHrefs = new Map<string, Set<string>>();

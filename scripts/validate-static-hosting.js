@@ -29,8 +29,12 @@ function loadCloudFrontHandler() {
   return context.handler;
 }
 
+function invokeCloudFrontHandler(handler, uri) {
+  return handler({ request: { uri } });
+}
+
 function rewriteUri(handler, uri) {
-  return handler({ request: { uri } }).uri;
+  return invokeCloudFrontHandler(handler, uri).uri;
 }
 
 const handler = loadCloudFrontHandler();
@@ -63,5 +67,13 @@ for (const route of publicRoutes) {
 assert(rewriteUri(handler, '/assets/index.js') === '/assets/index.js', 'CloudFront rewrite must not touch asset paths');
 assert(rewriteUri(handler, '/robots.txt') === '/robots.txt', 'CloudFront rewrite must not touch static files');
 assert(rewriteUri(handler, '/missing-route') === '/missing-route/index.html', 'Unknown extensionless paths should fall through to S3 miss + CloudFront 404 mapping');
+
+for (const apiPath of ['/api', '/api/nope']) {
+  const response = invokeCloudFrontHandler(handler, apiPath);
+  assert(response.statusCode === 404, `Expected ${apiPath} to return a CloudFront JSON 404 response`);
+  assert(response.headers?.['content-type']?.value === 'application/json; charset=utf-8', `Expected ${apiPath} to return JSON content type`);
+  assert(response.headers?.['x-robots-tag']?.value === 'noindex, nofollow', `Expected ${apiPath} to be noindex`);
+  assert(response.body.includes('"status":"not_found"'), `Expected ${apiPath} JSON body to describe not_found status`);
+}
 
 console.log(`Static hosting validation passed for ${publicRoutes.length} public routes.`);
