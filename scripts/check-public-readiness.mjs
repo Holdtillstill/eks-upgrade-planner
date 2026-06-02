@@ -58,10 +58,13 @@ const sitemapPath = path.join(root, "public/sitemap.xml")
 const socialPreviewPath = path.join(root, "public/social-preview.jpg")
 const readmeScreenshotPath = path.join(root, "docs/assets/eks-upgrade-planner-overview.png")
 const issueTemplateConfigPath = path.join(root, ".github/ISSUE_TEMPLATE/config.yml")
+const bugTemplatePath = path.join(root, ".github/ISSUE_TEMPLATE/bug_report.yml")
 const contributingPath = path.join(root, "CONTRIBUTING.md")
 const codeOfConductPath = path.join(root, "CODE_OF_CONDUCT.md")
 const dependabotPath = path.join(root, ".github/dependabot.yml")
 const privacyPath = path.join(root, "docs/privacy.md")
+const securityPolicyPath = path.join(root, "SECURITY.md")
+const licensePath = path.join(root, "LICENSE")
 
 function relative(filePath) {
   return path.relative(root, filePath)
@@ -182,6 +185,21 @@ if (fs.existsSync(issueTemplateConfigPath)) {
   findings.push(".github/ISSUE_TEMPLATE/config.yml: missing")
 }
 
+if (fs.existsSync(bugTemplatePath)) {
+  const bugTemplate = fs.readFileSync(bugTemplatePath, "utf8")
+  if (!bugTemplate.includes("sanitized browser-console output")) {
+    findings.push(".github/ISSUE_TEMPLATE/bug_report.yml: evidence instructions must require sanitized browser output")
+  }
+  if (!bugTemplate.includes("sanitized logs")) {
+    findings.push(".github/ISSUE_TEMPLATE/bug_report.yml: evidence instructions must require sanitized logs")
+  }
+  if (!bugTemplate.includes("Do not include secrets")) {
+    findings.push(".github/ISSUE_TEMPLATE/bug_report.yml: missing public-safety boundary")
+  }
+} else {
+  findings.push(".github/ISSUE_TEMPLATE/bug_report.yml: missing")
+}
+
 if (fs.existsSync(contributingPath)) {
   const contributing = fs.readFileSync(contributingPath, "utf8")
   if (!contributing.includes("Do not include secrets")) {
@@ -204,6 +222,34 @@ if (fs.existsSync(codeOfConductPath)) {
   }
 } else {
   findings.push("CODE_OF_CONDUCT.md: missing")
+}
+
+if (fs.existsSync(securityPolicyPath)) {
+  const securityPolicy = fs.readFileSync(securityPolicyPath, "utf8")
+  for (const marker of [
+    "GitHub private vulnerability reporting",
+    "Do not open a public issue",
+    "Gitleaks secret scanning",
+    "Trivy filesystem scanning",
+    "Trivy image scanning",
+    "CodeQL source analysis",
+  ]) {
+    if (!securityPolicy.includes(marker)) {
+      findings.push(`SECURITY.md: missing security policy marker ${marker}`)
+    }
+  }
+} else {
+  findings.push("SECURITY.md: missing")
+}
+
+if (fs.existsSync(licensePath)) {
+  const license = fs.readFileSync(licensePath, "utf8")
+  if (!license.includes("MIT License")) findings.push("LICENSE: missing MIT License")
+  if (!license.includes("Copyright (c) 2026 Holdtillstill")) {
+    findings.push("LICENSE: missing public copyright holder")
+  }
+} else {
+  findings.push("LICENSE: missing")
 }
 
 if (fs.existsSync(dependabotPath)) {
