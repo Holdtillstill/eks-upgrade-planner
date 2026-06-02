@@ -37,6 +37,7 @@ const bannedText = [
   { label: "assistant/tooling name", pattern: /\b(Codex|Gemini|Claude|ChatGPT|LLM)\b/i },
   { label: "internal workspace artifact", pattern: /\b(antigravity|portfolio_review|ybz\.dev)\b/i },
   { label: "portfolio-meta phrasing", pattern: /\b(interviews?|hiring manager|case study|proof points?)\b/i },
+  { label: "GitHub Actions badge URL", pattern: /actions\/workflows\/[^\s)]+\/badge\.svg|badge\.svg/i },
 ]
 
 const sensitiveText = [
