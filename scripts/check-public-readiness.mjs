@@ -52,9 +52,11 @@ const sensitiveText = [
 const allowedAccounts = new Set(["000000000000", "111122223333", "123456789012"])
 const findings = []
 const publicShellPath = path.join(root, "index.html")
+const readmePath = path.join(root, "README.md")
 const robotsPath = path.join(root, "public/robots.txt")
 const sitemapPath = path.join(root, "public/sitemap.xml")
 const socialPreviewPath = path.join(root, "public/social-preview.jpg")
+const readmeScreenshotPath = path.join(root, "docs/assets/eks-upgrade-planner-overview.png")
 const issueTemplateConfigPath = path.join(root, ".github/ISSUE_TEMPLATE/config.yml")
 const contributingPath = path.join(root, "CONTRIBUTING.md")
 const codeOfConductPath = path.join(root, "CODE_OF_CONDUCT.md")
@@ -105,6 +107,22 @@ function scanFile(filePath) {
 
 walk(root)
 
+if (fs.existsSync(readmePath)) {
+  const readme = fs.readFileSync(readmePath, "utf8")
+  const requiredReadmeMarkers = [
+    ["public static URL", "Public static app: <https://eks-upgrade-planner.bozhi.dev>"],
+    ["runtime request boundary", "Runtime preview: request-only through <https://bozhi.dev/#request>"],
+    ["AI-assisted disclosure", "This project was built with AI-assisted coding support"],
+    ["public status table", "| EKS runtime preview | Request-only |"],
+    ["README screenshot", "![EKS Upgrade Planner overview](docs/assets/eks-upgrade-planner-overview.png)"],
+  ]
+  for (const [label, marker] of requiredReadmeMarkers) {
+    if (!readme.includes(marker)) findings.push(`README.md: missing ${label}`)
+  }
+} else {
+  findings.push("README.md: missing")
+}
+
 if (fs.existsSync(publicShellPath)) {
   const shell = fs.readFileSync(publicShellPath, "utf8")
   const requiredShellMarkers = [
@@ -125,6 +143,9 @@ if (fs.existsSync(publicShellPath)) {
 
 if (!fs.existsSync(socialPreviewPath)) {
   findings.push("public/social-preview.jpg: missing social preview image")
+}
+if (!fs.existsSync(readmeScreenshotPath)) {
+  findings.push("docs/assets/eks-upgrade-planner-overview.png: missing README screenshot")
 }
 
 if (fs.existsSync(robotsPath)) {
