@@ -8,6 +8,7 @@ permissions:
   id-token: write
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
   AWS_ROLE_TO_ASSUME: ${{ secrets.ECR_AWS_ROLE_TO_ASSUME }}
   ECR_REPOSITORY: eks-upgrade-planner
