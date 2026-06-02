@@ -75,10 +75,12 @@ jobs:
             echo "ttl_hours must be between 1 and 168" >&2
             exit 1
           fi
-          echo "repository=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-          echo "tag=preview-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
-          echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
-          echo "expires_at=$(date -u -d "+${TTL_HOURS} hours" +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          {
+            echo "repository=ghcr.io/${GITHUB_REPOSITORY,,}"
+            echo "tag=preview-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "expires_at=$(date -u -d "+${TTL_HOURS} hours" +%Y-%m-%dT%H:%M:%SZ)"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         if: ${{ inputs.action == 'provision' }}
@@ -92,12 +94,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push preview image
+      - name: Build preview image
         if: ${{ inputs.action == 'provision' }}
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          push: false
+          load: true
           tags: ${{ steps.image.outputs.repository }}:${{ steps.image.outputs.tag }}
           labels: |
             org.opencontainers.image.created=${{ steps.image.outputs.created }}
@@ -110,6 +113,22 @@ jobs:
             APP_VERSION=preview
             SOURCE_VERSION=${{ github.sha }}
             BUILD_TIME=${{ steps.image.outputs.created }}
+
+      - name: Scan preview image
+        if: ${{ inputs.action == 'provision' }}
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image.outputs.repository }}:${{ steps.image.outputs.tag }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Push preview image
+        if: ${{ inputs.action == 'provision' }}
+        run: docker push "${IMAGE_REF}"
+        env:
+          IMAGE_REF: ${{ steps.image.outputs.repository }}:${{ steps.image.outputs.tag }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

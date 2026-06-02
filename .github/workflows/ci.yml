@@ -33,6 +33,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Public readiness checks
+        run: npm run check:public-readiness
+
       - name: Lint
         run: npm run lint
 
