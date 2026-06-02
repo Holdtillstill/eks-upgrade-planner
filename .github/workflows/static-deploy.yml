@@ -58,6 +58,7 @@ jobs:
         run: |
           npm ci --include=optional
           node -e "require('lightningcss')"
+          npx playwright install --with-deps chromium
 
       - name: Validate app
         run: |
@@ -113,3 +114,6 @@ jobs:
 
       - name: Smoke deployed static host
         run: WEB_BASE="${SITE_URL}" npm run smoke:static-host
+
+      - name: Smoke deployed browser rendering
+        run: WEB_BASE="${SITE_URL}" npm run smoke:browser-host

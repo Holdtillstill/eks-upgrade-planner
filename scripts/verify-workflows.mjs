@@ -76,6 +76,7 @@ assertAll(
     "SITE_URL",
     "npm ci --include=optional",
     "require('lightningcss')",
+    "npx playwright install --with-deps chromium",
     "npm test",
     "npm run lint",
     "npm run typecheck",
@@ -87,6 +88,7 @@ assertAll(
     "aws s3 sync dist/",
     "aws cloudfront create-invalidation",
     "WEB_BASE=\"${SITE_URL}\" npm run smoke:static-host",
+    "WEB_BASE=\"${SITE_URL}\" npm run smoke:browser-host",
   ],
   "static-deploy.yml",
 )
