@@ -1,0 +1,41 @@
+name: Data Correction
+description: Report stale or incorrect EKS lifecycle, pricing, add-on, or route data.
+title: "[Data]: "
+labels: ["data"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Data area
+      options:
+        - Kubernetes version lifecycle
+        - Platform version notes
+        - Extended support pricing
+        - Add-on guidance
+        - Public route metadata
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: Link the AWS or upstream source that supports the correction.
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: Correction needed
+      description: Explain what is stale, unclear, inaccurate, or missing.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Suggested validation
+      value: |
+        - npm run data:check
+        - npm test
+        - npm run build
+

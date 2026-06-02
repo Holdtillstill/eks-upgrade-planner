@@ -1,0 +1,51 @@
+name: Bug Report
+description: Report broken behavior in the planner, static host, server, data checks, or deployment scaffold.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Planner UI
+        - Version lifecycle data
+        - Add-on guidance
+        - Deprecated API scanner
+        - Production server
+        - Static hosting
+        - Helm chart
+        - CI/CD
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the visible behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Include route, pasted sample data if safe, commands, or browser details.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: Checks run
+      description: List tests, smoke checks, data checks, browser-console output, or logs reviewed.
+      render: shell
+  - type: textarea
+    id: public_boundary
+    attributes:
+      label: Public boundary
+      description: Do not include secrets, account-specific cloud identifiers, private manifests, or real cluster data.
+

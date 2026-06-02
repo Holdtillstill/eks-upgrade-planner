@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Public demo portal
+    url: https://bozhi.dev/#request
+    about: Request a short-lived runtime walkthrough from the public portfolio portal.

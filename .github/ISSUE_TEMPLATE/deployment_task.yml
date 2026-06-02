@@ -1,0 +1,48 @@
+name: Deployment Task
+description: Track static-host, image, Helm, or approved preview validation work.
+title: "[Deploy]: "
+labels: ["deployment"]
+body:
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Local Vite app
+        - Production server
+        - Public static host
+        - Helm render
+        - Approved short-lived preview
+        - CI/CD
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What should be deployed, validated, or rolled back?
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Required validation
+      value: |
+        - npm test:
+        - npm run lint:
+        - npm run typecheck:
+        - npm run build:
+        - npm run validate:static-hosting:
+        - npm run smoke:browser-host:
+        - Image or Helm check:
+    validations:
+      required: true
+  - type: textarea
+    id: cost_safety
+    attributes:
+      label: Cost and safety boundary
+      description: Note whether the task creates runtime resources. Preview resources must be approved, short-lived, and cleaned up.
+    validations:
+      required: true
+
