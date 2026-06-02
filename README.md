@@ -183,9 +183,10 @@ GitHub workflows:
   checks, production build, static-host validation, Docker build, and image
   scanning on pushes and pull requests.
 - `.github/workflows/dependency-audit.yml`, `.github/workflows/security.yml`,
-  and `.github/workflows/secret-scan.yml` run npm audit, Dependency Review for
-  public pull requests, Trivy filesystem/secret/misconfiguration scans, and
-  Gitleaks with an additional committed-cloud-identifier guard.
+  `.github/workflows/secret-scan.yml`, and `.github/workflows/codeql.yml` run
+  npm audit, Dependency Review for public pull requests, Trivy
+  filesystem/secret/misconfiguration scans, Gitleaks with an additional
+  committed-cloud-identifier guard, and CodeQL source analysis.
 - `.github/workflows/static-deploy.yml` deploys `dist/` to S3 and invalidates
   CloudFront using GitHub OIDC. It expects public repository variables
   `AWS_REGION` and `SITE_URL`, plus Actions secrets `AWS_ROLE_TO_ASSUME`,

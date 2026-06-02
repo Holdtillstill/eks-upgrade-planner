@@ -5,6 +5,7 @@ const workflowsDir = new URL("../.github/workflows/", import.meta.url)
 const expectedWorkflows = [
   "ci.yml",
   "cloudflare-pages.yml",
+  "codeql.yml",
   "dependency-audit.yml",
   "docker-publish.yml",
   "ecr-publish.yml",
@@ -196,6 +197,20 @@ assertAll(
   security,
   ["actions/dependency-review-action@v5", "aquasecurity/trivy-action@v0.36.0", "scan-type: fs", "scanners: vuln,secret,misconfig"],
   "security.yml",
+)
+
+const codeql = await readWorkflow("codeql.yml")
+assertAll(
+  codeql,
+  [
+    "permissions:\n  contents: read\n  security-events: write",
+    "schedule:",
+    "javascript-typescript",
+    "github/codeql-action/init@v3",
+    "build-mode: none",
+    "github/codeql-action/analyze@v3",
+  ],
+  "codeql.yml",
 )
 
 const dependencyAudit = await readWorkflow("dependency-audit.yml")
