@@ -56,6 +56,14 @@ for (const route of publicRoutes) {
   const html = fs.readFileSync(outputFile, 'utf8');
   assert(html.includes(`data-prerendered-route="${route.path}"`), `Expected prerender marker for ${route.path}`);
   assert(html.includes('<meta name="robots" content="index,follow" />'), `Expected indexable robots metadata for ${route.path}`);
+  assert(
+    html.includes('src="https://on-demand-demos.bozhi.dev/visitor.js"'),
+    `Expected first-party visitor script for ${route.path}`,
+  );
+  assert(
+    html.includes('data-project="eks-upgrade-planner"'),
+    `Expected EKS Planner visitor project id for ${route.path}`,
+  );
 
   const expectedRewrite = route.path === '/' ? '/index.html' : `${route.path}/index.html`;
   assert(rewriteUri(handler, route.path) === expectedRewrite, `Expected CloudFront rewrite ${route.path} -> ${expectedRewrite}`);
