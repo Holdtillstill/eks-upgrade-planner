@@ -50,6 +50,7 @@ export function renderManagedMeta(route, siteUrl) {
     metaTag('twitter:card', route.twitterCard || 'summary'),
     metaTag('twitter:title', twitterTitle),
     metaTag('twitter:description', twitterDescription),
+    metaTag('twitter:image', image),
     `<title>${escapeHtml(route.title)}</title>`,
   ].join('\n    ');
 }

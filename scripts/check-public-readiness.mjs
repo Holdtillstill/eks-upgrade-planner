@@ -37,6 +37,7 @@ const bannedText = [
   { label: "assistant/tooling name", pattern: /\b(Codex|Gemini|Claude|ChatGPT|LLM)\b/i },
   { label: "internal workspace artifact", pattern: /\b(antigravity|portfolio_review|ybz\.dev)\b/i },
   { label: "portfolio-meta phrasing", pattern: /\b(interviews?|hiring manager|case study|proof points?)\b/i },
+  { label: "runtime status mislabel", pattern: /\bLive static demo\b/i },
   { label: "GitHub Actions badge URL", pattern: /actions\/workflows\/[^\s)]+\/badge\.svg|badge\.svg/i },
 ]
 
@@ -50,6 +51,10 @@ const sensitiveText = [
 
 const allowedAccounts = new Set(["000000000000", "111122223333", "123456789012"])
 const findings = []
+const publicShellPath = path.join(root, "index.html")
+const robotsPath = path.join(root, "public/robots.txt")
+const sitemapPath = path.join(root, "public/sitemap.xml")
+const socialPreviewPath = path.join(root, "public/social-preview.jpg")
 
 function relative(filePath) {
   return path.relative(root, filePath)
@@ -94,6 +99,41 @@ function scanFile(filePath) {
 }
 
 walk(root)
+
+if (fs.existsSync(publicShellPath)) {
+  const shell = fs.readFileSync(publicShellPath, "utf8")
+  const requiredShellMarkers = [
+    ['canonical metadata', '<link rel="canonical"'],
+    ['OpenGraph URL metadata', 'property="og:url"'],
+    ['OpenGraph preview image', 'property="og:image" content="__SITE_URL__/social-preview.jpg"'],
+    ['Twitter large preview card', 'name="twitter:card" content="summary_large_image"'],
+    ['Twitter preview image', 'name="twitter:image" content="__SITE_URL__/social-preview.jpg"'],
+    ['first-party visitor telemetry script', 'https://on-demand-demos.bozhi.dev/visitor.js'],
+    ['visitor project id', 'data-project="eks-upgrade-planner"'],
+  ]
+  for (const [label, marker] of requiredShellMarkers) {
+    if (!shell.includes(marker)) findings.push(`index.html: missing ${label}`)
+  }
+} else {
+  findings.push("index.html: missing public web shell")
+}
+
+if (!fs.existsSync(socialPreviewPath)) {
+  findings.push("public/social-preview.jpg: missing social preview image")
+}
+
+if (fs.existsSync(robotsPath)) {
+  const robots = fs.readFileSync(robotsPath, "utf8")
+  if (!robots.includes("Sitemap: https://eks-upgrade-planner.bozhi.dev/sitemap.xml")) {
+    findings.push("public/robots.txt: missing production sitemap reference")
+  }
+} else {
+  findings.push("public/robots.txt: missing")
+}
+
+if (!fs.existsSync(sitemapPath)) {
+  findings.push("public/sitemap.xml: missing")
+}
 
 if (findings.length) {
   console.error("Public-readiness check failed:")

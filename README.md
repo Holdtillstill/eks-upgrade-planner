@@ -3,7 +3,7 @@
 A public, static-heavy web tool for planning Amazon EKS upgrades before they
 become extended-support bills or risky change windows.
 
-Live static demo: <https://eks-upgrade-planner.bozhi.dev>
+Public static app: <https://eks-upgrade-planner.bozhi.dev>
 Runtime preview: request-only through <https://bozhi.dev/#request>
 
 ![EKS Upgrade Planner overview](docs/assets/eks-upgrade-planner-overview.png)

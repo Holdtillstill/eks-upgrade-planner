@@ -1,6 +1,6 @@
 export const defaultSiteUrl = 'http://localhost:8080';
 export const siteName = 'EKS Upgrade Planner';
-export const socialImagePath = '/favicon.svg';
+export const socialImagePath = '/social-preview.jpg';
 const enabledFlags = new Set(['1', 'true', 'yes', 'on']);
 
 export const publicEksVersions = [
@@ -55,7 +55,7 @@ function addonCompatibilityPath(addon) {
 function route(input) {
   return {
     ogType: 'website',
-    twitterCard: 'summary',
+    twitterCard: 'summary_large_image',
     ...input,
   };
 }
