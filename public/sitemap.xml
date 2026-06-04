@@ -8,12 +8,13 @@
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/deprecated-api-scanner</loc><priority>0.8</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/addons</loc><priority>0.8</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/evidence-pack</loc><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-36-upgrade-guide</loc><priority>0.8</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-35-upgrade-guide</loc><priority>0.8</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-34-upgrade-guide</loc><priority>0.8</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-33-upgrade-guide</loc><priority>0.8</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-32-upgrade-guide</loc><priority>0.8</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-31-upgrade-guide</loc><priority>0.8</priority></url>
-  <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-30-upgrade-guide</loc><priority>0.8</priority></url>
+  <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-30-upgrade-guide</loc><priority>0.7</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-29-upgrade-guide</loc><priority>0.7</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/eks/1-28-upgrade-guide</loc><priority>0.7</priority></url>
   <url><loc>https://eks-upgrade-planner.bozhi.dev/addons/vpc-cni/eks-compatibility</loc><priority>0.7</priority></url>

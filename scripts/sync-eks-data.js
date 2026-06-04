@@ -13,6 +13,7 @@ const AWS_SOURCE_LABEL = 'AWS EKS Kubernetes version lifecycle';
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const VERSIONS_TS_PATH = path.join(ROOT_DIR, 'src/data/versions.ts');
 const PUBLIC_ROUTES_PATH = path.join(ROOT_DIR, 'scripts/public-routes.js');
+const SERVER_ROUTES_PATH = path.join(ROOT_DIR, 'server/routes.js');
 const monthIndexes = new Map([
   ['January', '01'],
   ['February', '02'],
@@ -33,7 +34,7 @@ function usage() {
     'Usage: node scripts/sync-eks-data.js --check|--write',
     '',
     '--check  Validate static EKS lifecycle data against live source docs and fail on drift.',
-    '--write  Update src/data/versions.ts and scripts/public-routes.js when source docs drift.',
+    '--write  Update EKS data and route metadata when source docs drift.',
   ].join('\n');
 }
 
@@ -95,7 +96,7 @@ export function parseEndOfLifeData(json) {
 }
 
 function extractArrayLiteral(source, exportName) {
-  const expression = new RegExp(`export const ${exportName}(?::[^=]+)? = (\\[[\\s\\S]*?\\n\\]);`);
+  const expression = new RegExp(`(?:export\\s+)?const ${exportName}(?::[^=]+)? = (\\[[\\s\\S]*?\\n\\]);`);
   const match = expression.exec(source);
   if (!match) throw new Error(`Could not find ${exportName} array`);
   return match[1];
@@ -124,9 +125,27 @@ function formatVersionsArray(versions) {
   return `[\n${versions.map(formatVersionObject).join(',\n')},\n]`;
 }
 
+function formatStringArray(values) {
+  return `[\n${values.map((value) => `  '${value}'`).join(',\n')},\n]`;
+}
+
 function replaceVersionsArray(source, exportName, versions) {
   const literal = extractArrayLiteral(source, exportName);
   return source.replace(literal, formatVersionsArray(versions));
+}
+
+export function parseStringArray(source, exportName) {
+  const literal = extractArrayLiteral(source, exportName);
+  const value = Function(`"use strict"; return (${literal});`)();
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
+    throw new Error(`${exportName} must be an array of strings`);
+  }
+  return value;
+}
+
+function replaceStringArray(source, exportName, values) {
+  const literal = extractArrayLiteral(source, exportName);
+  return source.replace(literal, formatStringArray(values));
 }
 
 function replaceCheckedAt(source, checkedAt) {
@@ -199,6 +218,35 @@ function diffVersions(existing, expected) {
   return diffs;
 }
 
+function versionGuideRoute(version) {
+  return `/eks/${version.version.replaceAll('.', '-')}-upgrade-guide`;
+}
+
+function buildExpectedGuideRoutes(versions) {
+  return versions.map(versionGuideRoute);
+}
+
+function diffStringArray(existing, expected) {
+  const diffs = [];
+  const max = Math.max(existing.length, expected.length);
+  for (let index = 0; index < max; index += 1) {
+    const current = existing[index];
+    const next = expected[index];
+    if (!current) {
+      diffs.push(`+ route ${next} should be added`);
+      continue;
+    }
+    if (!next) {
+      diffs.push(`- route ${current} should be removed`);
+      continue;
+    }
+    if (current !== next) {
+      diffs.push(`~ route ${index + 1}: expected ${next}, found ${current}`);
+    }
+  }
+  return diffs;
+}
+
 async function fetchText(url) {
   const response = await fetch(url, {
     headers: {
@@ -223,12 +271,14 @@ async function loadLiveSources() {
 }
 
 export async function syncEksData({ write = false } = {}) {
-  const [versionsSource, publicRoutesSource] = await Promise.all([
+  const [versionsSource, publicRoutesSource, serverRoutesSource] = await Promise.all([
     fs.readFile(VERSIONS_TS_PATH, 'utf8'),
     fs.readFile(PUBLIC_ROUTES_PATH, 'utf8'),
+    fs.readFile(SERVER_ROUTES_PATH, 'utf8'),
   ]);
   const sourceVersions = parseStaticVersions(versionsSource, 'eksVersions');
   const publicVersions = parseStaticVersions(publicRoutesSource, 'publicEksVersions');
+  const serverGuideRoutes = parseStringArray(serverRoutesSource, 'EKS_GUIDE_ROUTES');
   const liveSources = await loadLiveSources();
   const expectedVersions = buildExpectedVersions(
     sourceVersions,
@@ -238,9 +288,12 @@ export async function syncEksData({ write = false } = {}) {
   );
   const sourceDiffs = diffVersions(sourceVersions, expectedVersions);
   const publicDiffs = diffVersions(publicVersions, expectedVersions);
+  const expectedGuideRoutes = buildExpectedGuideRoutes(expectedVersions);
+  const serverRouteDiffs = diffStringArray(serverGuideRoutes, expectedGuideRoutes);
   const diffs = [
     ...sourceDiffs.map((diff) => `src/data/versions.ts ${diff}`),
     ...publicDiffs.map((diff) => `scripts/public-routes.js ${diff}`),
+    ...serverRouteDiffs.map((diff) => `server/routes.js ${diff}`),
   ];
 
   if (!write) {
@@ -260,9 +313,11 @@ export async function syncEksData({ write = false } = {}) {
     checkedAt,
   );
   const nextPublicRoutesSource = replaceVersionsArray(publicRoutesSource, 'publicEksVersions', expectedVersions);
+  const nextServerRoutesSource = replaceStringArray(serverRoutesSource, 'EKS_GUIDE_ROUTES', expectedGuideRoutes);
   await Promise.all([
     fs.writeFile(VERSIONS_TS_PATH, nextVersionsSource),
     fs.writeFile(PUBLIC_ROUTES_PATH, nextPublicRoutesSource),
+    fs.writeFile(SERVER_ROUTES_PATH, nextServerRoutesSource),
   ]);
   return { changed: true, diffs, expectedVersions };
 }

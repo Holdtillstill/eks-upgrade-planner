@@ -10,6 +10,7 @@ const APP_HTML_ROUTES = [
 ];
 
 const EKS_GUIDE_ROUTES = [
+  '/eks/1-36-upgrade-guide',
   '/eks/1-35-upgrade-guide',
   '/eks/1-34-upgrade-guide',
   '/eks/1-33-upgrade-guide',

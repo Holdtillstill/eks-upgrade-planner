@@ -34,10 +34,13 @@ jobs:
       - name: Refresh static EKS data
         run: npm run data:update
 
+      - name: Refresh public metadata
+        run: npm run generate:public-metadata
+
       - name: Detect data changes
         id: data_changes
         run: |
-          if git diff --quiet -- src/data/versions.ts scripts/public-routes.js; then
+          if git diff --quiet -- src/data/versions.ts scripts/public-routes.js server/routes.js public/sitemap.xml public/robots.txt; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -60,6 +63,9 @@ jobs:
           add-paths: |
             src/data/versions.ts
             scripts/public-routes.js
+            server/routes.js
+            public/sitemap.xml
+            public/robots.txt
           commit-message: 'chore: refresh eks lifecycle data'
           title: 'chore: refresh EKS lifecycle data'
           body: |

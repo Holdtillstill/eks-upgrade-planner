@@ -4,6 +4,7 @@ import {
   parseAwsLifecycleMarkdown,
   parseAwsPlatformMarkdown,
   parseEndOfLifeData,
+  parseStringArray,
 } from './sync-eks-data.js';
 
 describe('EKS data sync helpers', () => {
@@ -40,6 +41,17 @@ describe('EKS data sync helpers', () => {
 
     expect(parsed.get('1.35')).toBe('1.35-eks-13');
     expect(parsed.get('1.34')).toBe('1.34-eks-23');
+  });
+
+  it('parses non-exported server route arrays', () => {
+    const parsed = parseStringArray(`
+const EKS_GUIDE_ROUTES = [
+  '/eks/1-36-upgrade-guide',
+  '/eks/1-35-upgrade-guide',
+];
+`, 'EKS_GUIDE_ROUTES');
+
+    expect(parsed).toEqual(['/eks/1-36-upgrade-guide', '/eks/1-35-upgrade-guide']);
   });
 
   it('builds expected current AWS rows and archived endoflife rows', () => {
