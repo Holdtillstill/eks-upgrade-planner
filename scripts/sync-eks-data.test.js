@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildExpectedVersions,
+  parseAwsLifecycleHtml,
   parseAwsLifecycleMarkdown,
+  parseAwsPlatformHtml,
   parseAwsPlatformMarkdown,
   parseEndOfLifeData,
   parseStringArray,
@@ -23,6 +25,27 @@ describe('EKS data sync helpers', () => {
     });
   });
 
+  it('parses AWS lifecycle HTML table rows into ISO dates', () => {
+    const parsed = parseAwsLifecycleHtml(`
+<table>
+  <tr>
+    <td><p><code class="code">1.36</code></p></td>
+    <td><p>April 22, 2026</p></td>
+    <td><p>June 2, 2026</p></td>
+    <td><p>August 2, 2027</p></td>
+    <td><p>August 2, 2028</p></td>
+  </tr>
+</table>
+`);
+
+    expect(parsed.get('1.36')).toMatchObject({
+      version: '1.36',
+      releaseDate: '2026-06-02',
+      standardSupportEnd: '2027-08-02',
+      extendedSupportEnd: '2028-08-02',
+    });
+  });
+
   it('uses the newest platform row from each AWS platform section', () => {
     const parsed = parseAwsPlatformMarkdown(`
 ## Kubernetes version \`1.35\`
@@ -41,6 +64,38 @@ describe('EKS data sync helpers', () => {
 
     expect(parsed.get('1.35')).toBe('1.35-eks-13');
     expect(parsed.get('1.34')).toBe('1.34-eks-23');
+  });
+
+  it('uses the newest platform row from each AWS platform HTML section', () => {
+    const parsed = parseAwsPlatformHtml(`
+<h2 id="platform-versions-1-36">Kubernetes version <code class="code">1.36</code></h2>
+<table>
+  <tr>
+    <td><p><code class="code">1.36.1</code></p></td>
+    <td><p><code class="code">eks.3</code></p></td>
+    <td><p>Initial release.</p></td>
+    <td><p>June 2, 2026</p></td>
+  </tr>
+</table>
+<h2 id="platform-versions-1-35">Kubernetes version <code class="code">1.35</code></h2>
+<table>
+  <tr>
+    <td><p><code class="code">1.35.4</code></p></td>
+    <td><p><code class="code">eks.13</code></p></td>
+    <td><p>New platform version.</p></td>
+    <td><p>May 19, 2026</p></td>
+  </tr>
+  <tr>
+    <td><p><code class="code">1.35.2</code></p></td>
+    <td><p><code class="code">eks.9</code></p></td>
+    <td><p>Older platform version.</p></td>
+    <td><p>April 3, 2026</p></td>
+  </tr>
+</table>
+`);
+
+    expect(parsed.get('1.36')).toBe('1.36-eks-3');
+    expect(parsed.get('1.35')).toBe('1.35-eks-13');
   });
 
   it('parses non-exported server route arrays', () => {

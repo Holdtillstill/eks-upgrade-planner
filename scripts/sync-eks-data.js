@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 export const AWS_LIFECYCLE_URL = 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.md';
 export const AWS_PLATFORM_URL = 'https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.md';
 export const AWS_LIFECYCLE_HTML_URL = 'https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html';
+export const AWS_PLATFORM_HTML_URL = 'https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.html';
 export const ENDOFLIFE_EKS_URL = 'https://endoflife.date/api/amazon-eks.json';
 
 const END_OF_LIFE_SOURCE_LABEL = 'endoflife.date Amazon EKS lifecycle archive';
@@ -42,6 +43,28 @@ function normalizeCell(value) {
   return value.replaceAll('\\+', '+').replace(/\s+/g, ' ').trim();
 }
 
+function decodeHtml(value) {
+  return value
+    .replaceAll('&nbsp;', ' ')
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'");
+}
+
+function htmlText(value) {
+  return decodeHtml(value.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+}
+
+function htmlRows(source) {
+  return [...source.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map((match) => match[1]);
+}
+
+function htmlCells(row) {
+  return [...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map((match) => htmlText(match[1]));
+}
+
 export function dateToIso(value) {
   const normalized = normalizeCell(value);
   const match = /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})$/.exec(normalized);
@@ -74,6 +97,24 @@ export function parseAwsLifecycleMarkdown(markdown) {
   return versions;
 }
 
+export function parseAwsLifecycleHtml(html) {
+  const versions = new Map();
+  for (const row of htmlRows(html)) {
+    const cells = htmlCells(row);
+    if (cells.length < 5 || !/^1\.\d+$/.test(cells[0])) continue;
+    versions.set(cells[0], {
+      version: cells[0],
+      releaseDate: dateToIso(cells[2]),
+      standardSupportEnd: dateToIso(cells[3]),
+      extendedSupportEnd: dateToIso(cells[4]),
+      sourceLabel: AWS_SOURCE_LABEL,
+      sourceUrl: AWS_LIFECYCLE_HTML_URL,
+    });
+  }
+  if (versions.size === 0) throw new Error('Could not parse any EKS lifecycle rows from AWS HTML documentation');
+  return versions;
+}
+
 export function parseAwsPlatformMarkdown(markdown) {
   const platforms = new Map();
   const sectionPattern = /## Kubernetes version `(?<version>1\.\d+)`[\s\S]*?(?=\n## Kubernetes version `|$)/g;
@@ -86,6 +127,24 @@ export function parseAwsPlatformMarkdown(markdown) {
     }
   }
   if (platforms.size === 0) throw new Error('Could not parse any EKS platform rows from AWS documentation');
+  return platforms;
+}
+
+export function parseAwsPlatformHtml(html) {
+  const platforms = new Map();
+  const sectionPattern = /<h2\b[^>]*>\s*Kubernetes version\s*<code\b[^>]*>(?<version>1\.\d+)<\/code><\/h2>(?<section>[\s\S]*?)(?=<h2\b[^>]*>\s*Kubernetes version\s*<code\b|$)/gi;
+  for (const sectionMatch of html.matchAll(sectionPattern)) {
+    const { version, section } = sectionMatch.groups;
+    for (const row of htmlRows(section)) {
+      const cells = htmlCells(row);
+      const platformMatch = /^eks\.(\d+)$/.exec(cells[1] || '');
+      if (cells[0]?.startsWith(`${version}.`) && platformMatch) {
+        platforms.set(version, `${version}-eks-${platformMatch[1]}`);
+        break;
+      }
+    }
+  }
+  if (platforms.size === 0) throw new Error('Could not parse any EKS platform rows from AWS HTML documentation');
   return platforms;
 }
 
@@ -257,15 +316,29 @@ async function fetchText(url) {
   return response.text();
 }
 
+async function fetchSource(primaryUrl, fallbackUrl) {
+  try {
+    return { format: 'markdown', text: await fetchText(primaryUrl) };
+  } catch (error) {
+    if (!fallbackUrl) throw error;
+    const fallbackText = await fetchText(fallbackUrl);
+    return { format: 'html', text: fallbackText };
+  }
+}
+
 async function loadLiveSources() {
-  const [lifecycleMarkdown, platformMarkdown, endOfLifeJson] = await Promise.all([
-    fetchText(AWS_LIFECYCLE_URL),
-    fetchText(AWS_PLATFORM_URL),
+  const [lifecycleSource, platformSource, endOfLifeJson] = await Promise.all([
+    fetchSource(AWS_LIFECYCLE_URL, AWS_LIFECYCLE_HTML_URL),
+    fetchSource(AWS_PLATFORM_URL, AWS_PLATFORM_HTML_URL),
     fetchText(ENDOFLIFE_EKS_URL),
   ]);
   return {
-    lifecycleVersions: parseAwsLifecycleMarkdown(lifecycleMarkdown),
-    platformVersions: parseAwsPlatformMarkdown(platformMarkdown),
+    lifecycleVersions: lifecycleSource.format === 'html'
+      ? parseAwsLifecycleHtml(lifecycleSource.text)
+      : parseAwsLifecycleMarkdown(lifecycleSource.text),
+    platformVersions: platformSource.format === 'html'
+      ? parseAwsPlatformHtml(platformSource.text)
+      : parseAwsPlatformMarkdown(platformSource.text),
     endOfLifeVersions: parseEndOfLifeData(endOfLifeJson),
   };
 }
