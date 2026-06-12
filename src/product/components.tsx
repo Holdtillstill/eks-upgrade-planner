@@ -22,36 +22,28 @@ function uniqueSources() {
   return [...sourceMap.entries()].map(([url, label]) => ({ url, label }));
 }
 
-const productNavMeta: Record<ProductTab, { code: string; label: string; detail: string }> = {
-  overview: { code: '00', label: 'Overview', detail: 'Fleet scope' },
-  versions: { code: '01', label: 'Lifecycle', detail: 'Version gates' },
-  cost: { code: '02', label: 'Cost', detail: 'Fees & risk' },
-  planner: { code: '03', label: 'Planner', detail: 'Change plan' },
-  scanner: { code: '04', label: 'Scanner', detail: 'Static scan' },
-  guides: { code: '05', label: 'Guides', detail: 'Source notes' },
-  addons: { code: '06', label: 'Add-ons', detail: 'Checklists' },
-  evidence: { code: '07', label: 'Evidence', detail: 'Change packet' },
+const productNavMeta: Record<ProductTab, { label: string }> = {
+  overview: { label: 'Overview' },
+  versions: { label: 'Lifecycle' },
+  cost: { label: 'Cost' },
+  planner: { label: 'Plan' },
+  scanner: { label: 'Scanner' },
+  guides: { label: 'Guides' },
+  addons: { label: 'Add-ons' },
+  evidence: { label: 'Packet' },
 };
 
 export function SourceRail({ currentVersion, scannerFindings }: { currentVersion: string; scannerFindings: number }) {
   const sources = uniqueSources();
   return <aside className="product-sources source-rail" aria-label="Dataset snapshot and source links">
     <div className="rail-block rail-release">
-      <span className="eyebrow">Dataset and sources</span>
+      <span className="eyebrow">Data</span>
       <strong>EKS {currentVersion}</strong>
-      <p>{scannerFindings} deprecated API finding(s) attached to the workspace state.</p>
+      <p>{dataFreshness.checkedAt}. {scannerFindings} scanner finding(s).</p>
     </div>
     <div>
-      <span className="eyebrow">Dataset snapshot</span>
-      <strong>{dataFreshness.checkedAt}</strong>
-      <p>{dataFreshness.note}</p>
-      <p>{dataFreshness.verificationCadence}</p>
-    </div>
-    <div className="trust-box">
-      <span className="eyebrow">Trust model</span>
-      <p>Planner inputs and pasted manifests run locally in the browser. No AWS APIs, product accounts, credentials, cluster discovery, or manifest upload are used or stored.</p>
-      <p>First-party pageview telemetry respects Do Not Track and Global Privacy Control. Notifications use masked or coarse values; raw IP and user agent are retained briefly for digest, abuse, and reliability analysis.</p>
-      <p>Cost values are estimates for the EKS control-plane support tier only. Releases past extended support are flagged as automatic-upgrade risk instead of zero-cost choices.</p>
+      <span className="eyebrow">Privacy</span>
+      <p>Inputs stay in the browser. No AWS APIs, credentials, cluster discovery, or manifest upload.</p>
       <a className="privacy-note-link" href="/privacy.html">Privacy note</a>
     </div>
     <div className="source-list">
@@ -76,9 +68,7 @@ export function ProductTabs({ active, guideVersion, setRoute }: { active: Produc
           navigate(path, setRoute);
         }}
       >
-        <span>{meta.code}</span>
         <strong>{meta.label}</strong>
-        <em>{meta.detail}</em>
       </a>;
     })}
   </nav>;

@@ -34,8 +34,8 @@ export function ProductShell({ route, setRoute, afterTabs }: { route: Extract<Ap
   const displayedAddonId = route.detail?.type === 'addon' ? route.detail.addonId : activeAddonId;
   const activeFleetItem = fleetItems.find((item) => item.id === activeFleetItemId) ?? null;
   const selectedScopeLabel = activeFleetItem
-    ? `Selected row: ${activeFleetItem.label} · EKS ${currentVersion} → EKS ${effectiveTarget}`
-    : `Single-version scope: EKS ${currentVersion} → EKS ${effectiveTarget}`;
+    ? `${activeFleetItem.label} · EKS ${currentVersion} -> ${effectiveTarget}`
+    : `EKS ${currentVersion} -> ${effectiveTarget}`;
   const applyFleetItemToScenario = (item: FleetItem) => {
     const normalized = normalizedFleetItem(item);
     setActiveFleetItemId(normalized.id);
@@ -50,7 +50,7 @@ export function ProductShell({ route, setRoute, afterTabs }: { route: Extract<Ap
       <a className="product-brand" href="/app" onClick={(event) => { event.preventDefault(); navigate('/app', setRoute); }}>
         <span/>
         <strong>EKS Upgrade Planner</strong>
-        <em>browser-local planner</em>
+        <em>browser-only</em>
       </a>
       <ProductTabs active={route.tab} guideVersion={displayedGuideVersion} setRoute={setRoute}/>
       {afterTabs}
@@ -59,7 +59,7 @@ export function ProductShell({ route, setRoute, afterTabs }: { route: Extract<Ap
     <div className="product-main" id="main-content" tabIndex={-1}>
       <header className="product-topbar">
         <div>
-          <span className="eyebrow">Browser-local · no AWS account access</span>
+          <span className="eyebrow">No AWS credentials</span>
           <strong>{selectedScopeLabel}</strong>
         </div>
         <div className="topbar-status">

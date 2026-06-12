@@ -37,7 +37,7 @@ describe('ProductShell integration', () => {
       renderProductRoute('/eks/extended-support-cost-calculator');
 
       expect(screen.getByRole('heading', { name: /support fees and deadline risk/i })).toBeTruthy();
-      fireEvent.click(screen.getByRole('button', { name: /^single-version what-if$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^single release$/i }));
       fireEvent.change(screen.getByLabelText('Scenario EKS version'), { target: { value: '1.35' } });
 
       expect(screen.getByRole('button', { name: /bridge[\s\S]*\$0[\s\S]*4 mo window/i })).toHaveAttribute('aria-pressed', 'true');
@@ -61,7 +61,7 @@ describe('ProductShell integration', () => {
     try {
       renderProductRoute('/eks/extended-support-cost-calculator');
 
-      fireEvent.click(screen.getByRole('button', { name: /^single-version what-if$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^single release$/i }));
       fireEvent.change(screen.getByLabelText('Scenario EKS version'), { target: { value: '1.29' } });
 
       expect(screen.getByRole('button', { name: /bridge[\s\S]*past support[\s\S]*automatic-upgrade risk/i })).toHaveAttribute('aria-pressed', 'true');
@@ -79,14 +79,14 @@ describe('ProductShell integration', () => {
     expect(screen.queryByLabelText('Scenario current release')).toBeNull();
     expect(screen.queryByLabelText('Scenario target release')).toBeNull();
     expect(screen.getByLabelText(/shared delay model: 4 month\(s\)/i)).toBeTruthy();
-    expect(screen.getByText(/selected row:\s*prod-payments\s*·\s*EKS\s*1\.31\s*→\s*EKS\s*1\.35/i)).toBeTruthy();
+    expect(screen.getByText(/prod-payments\s*·\s*EKS\s*1\.31\s*->\s*1\.35/i)).toBeTruthy();
     expect(screen.getByText(/prod-payments:\s*EKS\s*1\.31\s*->\s*EKS\s*1\.35/i)).toBeTruthy();
-    expect(screen.getByText(/5 cluster\(s\);\s*seeds single-version cost, planner, evidence/i)).toBeTruthy();
+    expect(screen.getByText(/5 cluster\(s\)\.\s*used by cost, planner, packet/i)).toBeTruthy();
     expect(screen.getByText(/^active scope$/i)).toBeTruthy();
     expect(screen.queryByRole('button', { name: /refresh tools/i })).toBeNull();
 
     fireEvent.click(within(screen.getByLabelText('Fleet scope prod-payments')).getByRole('button', { name: /^remove$/i }));
-    expect(screen.getByText(/selected row:\s*shared-platform\s*·\s*EKS\s*1\.30\s*→\s*EKS\s*1\.35/i)).toBeTruthy();
+    expect(screen.getByText(/shared-platform\s*·\s*EKS\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
   });
 
   it('lets fleet rows feed the selected scenario tools', () => {
@@ -97,8 +97,8 @@ describe('ProductShell integration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /use in tools for shared-platform/i }));
 
-    expect(screen.getByText(/selected row:\s*shared-platform\s*·\s*EKS\s*1\.30\s*→\s*EKS\s*1\.35/i)).toBeTruthy();
-    expect(screen.getAllByText(/3 cluster\(s\);\s*seeds single-version cost, planner, evidence/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/shared-platform\s*·\s*EKS\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
+    expect(screen.getAllByText(/3 cluster\(s\)\.\s*used by cost, planner, packet/i).length).toBeGreaterThan(0);
 
     fireEvent.change(screen.getByLabelText(/shared delay model: 4 month\(s\)/i), { target: { value: '2' } });
     expect(screen.getByLabelText(/shared delay model: 2 month\(s\)/i)).toBeTruthy();
@@ -121,9 +121,9 @@ describe('ProductShell integration', () => {
       expect(screen.getByText(/204 cluster-day\(s\) in this modeled window fall after an extended-support end date/i)).toBeTruthy();
       expect(screen.getByText(/selected fleet case:\s*bridge,\s*4-month completion window,\s*\$12,336 remaining support fees/i)).toBeTruthy();
 
-      fireEvent.click(screen.getByRole('button', { name: /shared-platform[\s\S]*single-version what-if/i }));
+      fireEvent.click(screen.getByRole('button', { name: /shared-platform[\s\S]*model this row/i }));
 
-      expect(screen.getByText(/selected row:\s*shared-platform\s*·\s*EKS\s*1\.30\s*→\s*EKS\s*1\.35/i)).toBeTruthy();
+      expect(screen.getByText(/shared-platform\s*·\s*EKS\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
       expect((screen.getByLabelText('Scenario clusters') as HTMLInputElement).value).toBe('3');
       expect((screen.getByLabelText('Copyable Cost Model') as HTMLTextAreaElement).value).toContain('Scope: shared-platform');
     } finally {
@@ -137,7 +137,7 @@ describe('ProductShell integration', () => {
     try {
       renderProductRoute('/eks/extended-support-cost-calculator');
 
-      fireEvent.click(screen.getByRole('button', { name: /^single-version what-if$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^single release$/i }));
       fireEvent.change(screen.getByLabelText('Scenario EKS version'), { target: { value: '1.30' } });
       fireEvent.change(screen.getByLabelText('Scenario clusters'), { target: { value: '1' } });
       fireEvent.change(screen.getByLabelText(/bridge delay:/i), { target: { value: '2' } });
@@ -167,7 +167,7 @@ describe('ProductShell integration', () => {
     expect(screen.getByText(/line 6: PodSecurityPolicy/i)).toBeTruthy();
   });
 
-  it('renders a fleet planner by default and can open one row as a single-version what-if', () => {
+  it('renders a fleet planner by default and can open one row as a single release plan', () => {
     renderProductRoute('/eks/upgrade-planner');
 
     expect(screen.getByRole('heading', { name: /upgrade change plan/i })).toBeTruthy();
@@ -181,9 +181,9 @@ describe('ProductShell integration', () => {
     expect(fleetPlan.value).toContain('prod-payments');
     expect(fleetPlan.value).toContain('shared-platform');
 
-    fireEvent.click(screen.getByRole('button', { name: /use single what-if for shared-platform/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open row plan for shared-platform/i }));
 
-    expect(screen.getByRole('button', { name: /single-version what-if/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /single release/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: /managed node groups/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: /set target to EKS 1\.32/i })).toBeTruthy();
     expect((screen.getByLabelText('Current version') as HTMLSelectElement).value).toBe('1.30');
@@ -213,9 +213,9 @@ describe('ProductShell integration', () => {
     const links = within(sourceRail).getAllByRole('link');
     const labelToHrefs = new Map<string, Set<string>>();
 
-    expect(within(sourceRail).getByText(/dataset snapshot/i)).toBeTruthy();
-    expect(within(sourceRail).getByText(/trust model/i)).toBeTruthy();
-    expect(within(sourceRail).getByText(/daily scheduled source check/i)).toBeTruthy();
+    expect(within(sourceRail).getByText(/data/i)).toBeTruthy();
+    expect(within(sourceRail).getByText(/^privacy$/i)).toBeTruthy();
+    expect(within(sourceRail).getByText(/inputs stay in the browser/i)).toBeTruthy();
 
     for (const link of links) {
       const label = link.textContent ?? '';

@@ -105,23 +105,23 @@ Scanner findings: ${scannerFindings.length}`;
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Overview · Fleet Scope</span>
+        <span className="eyebrow">Overview</span>
         <h1>Fleet risk summary</h1>
       </div>
-      <p>Capture the EKS versions in scope, identify clusters already paying or past support windows, then send one row into the cost, planner, and change-packet tools.</p>
+      <p>Edit fleet rows, then open cost, plan, scanner, or packet views.</p>
     </div>
 
     <div className="overview-control-strip" aria-label="Fleet planning controls">
       <ProductField label={`Shared delay model: ${monthsDelayed} month(s)`}><input type="range" min="1" max="24" value={monthsDelayed} onChange={(event) => setMonthsDelayed(Number(event.target.value))}/></ProductField>
       <div className="release-control-note selected-row-note">
-        <span>Selected single-version row</span>
-        <strong>{activeFleetScope ? `${activeFleetScope.label}: EKS ${activeFleetScope.version} -> EKS ${activeFleetScope.targetVersion}` : `Custom what-if: EKS ${selected.version} -> EKS ${target}`}</strong>
-        <p>{activeFleetScope ? `${fleetItemClusters(activeFleetScope)} cluster(s); seeds single-version Cost, Planner, Evidence.` : `${clusterCount} cluster(s); edited inside a single-version tool.`}</p>
+        <span>Active row</span>
+        <strong>{activeFleetScope ? `${activeFleetScope.label}: EKS ${activeFleetScope.version} -> EKS ${activeFleetScope.targetVersion}` : `Custom: EKS ${selected.version} -> EKS ${target}`}</strong>
+        <p>{activeFleetScope ? `${fleetItemClusters(activeFleetScope)} cluster(s). Used by Cost, Planner, Packet.` : `${clusterCount} cluster(s). Edit inside a focused tool.`}</p>
       </div>
       <div className="release-control-note">
-        <span>Fleet source of truth</span>
+        <span>Fleet</span>
         <strong>{fleetSummary.totalClusters} fleet cluster(s)</strong>
-        <p>{fleetItems.length} scope row(s) drive Fleet aggregate cost and Fleet change plan.</p>
+        <p>{fleetItems.length} row(s) drive aggregate cost and plan.</p>
       </div>
     </div>
 
@@ -146,7 +146,7 @@ Scanner findings: ${scannerFindings.length}`;
           <h2>Fleet Scope</h2>
           <Source label={dataFreshness.sourceLabel} url={dataFreshness.sourceUrl}/>
         </div>
-        <p className="fleet-caption">Editable fleet rows used to prioritize EKS lifecycle deadlines and remaining support fees. The active row seeds the single-version Cost, Planner, and Evidence views.</p>
+        <p className="fleet-caption">Rows are editable. Use one row in focused tools when needed.</p>
         <div className="fleet-list" aria-label="Editable fleet scope rows">
           {fleetItems.map((rawItem) => {
             const item = normalizedFleetItem(rawItem);
@@ -232,10 +232,10 @@ export function VersionsSection({ currentVersion, setCurrentVersion, setRoute }:
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Lifecycle · Version Gates</span>
+        <span className="eyebrow">Lifecycle</span>
         <h1>EKS lifecycle registry</h1>
       </div>
-      <p>Dense, source-linked release data with gate treatment for standard support, extended support, and expired release lines.</p>
+      <p>Release dates, support windows, platform versions, and source links.</p>
     </div>
 
     <div className="lifecycle-gate-row">
@@ -515,17 +515,17 @@ ${eksPricing.note} Lifecycle dates and billable windows use AWS UTC dates from t
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Cost · Deadline Risk</span>
+        <span className="eyebrow">Cost</span>
         <h1>Support fees and deadline risk</h1>
       </div>
-      <p>Model remaining EKS extended-support fees from today forward and show when a plan crosses the extended-support end date.</p>
+      <p>Remaining support fees and unsupported days.</p>
     </div>
 
     <section className="product-panel cost-scope-panel" aria-label="Fleet cost scope">
       <div className="panel-title">
         <div>
           <h2>Fleet Cost Scope</h2>
-        <p>Carried from Overview. Fleet mode sums mixed-version rows; single-version what-if is for one release line.</p>
+        <p>Carried from Overview. Fleet mode sums mixed-version rows; Single release models one release line.</p>
         </div>
         <span>{fleetSummary.totalClusters} clusters · {fleetItems.length} scope rows</span>
       </div>
@@ -555,7 +555,7 @@ ${eksPricing.note} Lifecycle dates and billable windows use AWS UTC dates from t
             <span>{item.label}</span>
             <strong>EKS {item.version}{' -> '}EKS {item.targetVersion}</strong>
             <em>{fleetItemClusters(item)} cluster(s) · {rowFeeCopy(rowExposure)} · {deadlineCopy(version)}</em>
-            <span className="sr-only">Model as single-version what-if</span>
+            <span className="sr-only">Model this row</span>
           </button>;
         })}
       </div>
@@ -563,7 +563,7 @@ ${eksPricing.note} Lifecycle dates and billable windows use AWS UTC dates from t
 
     <div className="segmented cost-mode-toggle" aria-label="Cost model scope">
       <button type="button" className={costMode === 'fleet' ? 'active' : ''} aria-pressed={costMode === 'fleet'} onClick={() => setCostMode('fleet')}>Fleet aggregate</button>
-      <button type="button" className={costMode === 'single' ? 'active' : ''} aria-pressed={costMode === 'single'} onClick={() => setCostMode('single')}>Single-version what-if</button>
+      <button type="button" className={costMode === 'single' ? 'active' : ''} aria-pressed={costMode === 'single'} onClick={() => setCostMode('single')}>Single release</button>
     </div>
 
     {costMode === 'fleet' ? <div className="tool-grid finance-layout">
@@ -658,7 +658,7 @@ ${eksPricing.note} Lifecycle dates and billable windows use AWS UTC dates from t
             setMonthsDelayed(Number(event.target.value));
           }}/></ProductField>
         </div>
-        <p className="small-note">Scenario scope: {scenarioScopeLabel}. This is a single-version what-if; switch to Fleet aggregate for mixed-version fleet totals. {scenarioBasisCopy}</p>
+        <p className="small-note">Scenario scope: {scenarioScopeLabel}. This view models one release line; switch to Fleet aggregate for mixed-version totals. {scenarioBasisCopy}</p>
         <p className="small-note selected-scenario-note">{selectedSingleScenarioCopy}</p>
         <p className="small-note support-window-note">{remainingFeesCopy}</p>
         <ScenarioLedger rows={scenarioRows} activeId={scenario} setActiveId={setScenario}/>
@@ -862,21 +862,21 @@ ${scannerReportLines}
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Planner · Change Plan</span>
+        <span className="eyebrow">Planner</span>
         <h1>Upgrade change plan</h1>
       </div>
-      <p>Plan mixed-version fleet rows by default, or switch to a single-version what-if when one release line needs a focused hop plan.</p>
+      <p>Fleet routes first. Open a row when a release needs its own plan.</p>
     </div>
 
     <div className="segmented planner-mode-toggle" aria-label="Planner scope">
       <button type="button" className={plannerMode === 'fleet' ? 'active' : ''} aria-pressed={plannerMode === 'fleet'} onClick={() => setPlannerMode('fleet')}>Fleet change plan</button>
-      <button type="button" className={plannerMode === 'single' ? 'active' : ''} aria-pressed={plannerMode === 'single'} onClick={() => setPlannerMode('single')}>Single-version what-if</button>
+      <button type="button" className={plannerMode === 'single' ? 'active' : ''} aria-pressed={plannerMode === 'single'} onClick={() => setPlannerMode('single')}>Single release</button>
     </div>
 
     {plannerMode === 'fleet' ? <div className="tool-grid planner-grid release-planner fleet-release-planner">
       <section className="product-panel train-control-panel">
         <div className="panel-title"><h2>Fleet Plan Inputs</h2><span>{fleetClusters} clusters · {fleetPlanRows.length} row(s)</span></div>
-        <p className="small-note">Rows come from Overview Fleet Scope. Use the row action below to open one row as a single-version what-if.</p>
+        <p className="small-note">Rows come from Overview Fleet Scope. Open one row when it needs its own plan.</p>
         <dl className="cost-ledger">
           <div><dt>Route groups</dt><dd>{fleetPlanGroups.length}</dd></div>
           <div><dt>Total row hops</dt><dd>{fleetHopWorkItems}</dd></div>
@@ -920,10 +920,10 @@ ${scannerReportLines}
               <td>{row.clusters}</td>
               <td>{row.hops.join(' -> ')}</td>
               <td>{row.risk}</td>
-              <td><button type="button" aria-label={`Use single what-if for ${row.item.label}`} onClick={() => {
+              <td><button type="button" aria-label={`Open row plan for ${row.item.label}`} onClick={() => {
                 applyFleetItemToScenario(row.item);
                 setPlannerMode('single');
-              }}>Use single what-if</button></td>
+              }}>Open row</button></td>
             </tr>)}</tbody>
           </table>
         </div>
@@ -933,7 +933,7 @@ ${scannerReportLines}
     </div> : <div className="tool-grid planner-grid release-planner">
       <section className="product-panel train-control-panel">
         <div className="panel-title"><h2>Plan Inputs</h2><span>{selectedAddonIds.length} add-ons</span></div>
-        <p className="small-note">Single-version what-if models one selected release line. {activeFleetItem ? `Loaded from ${activeFleetItem.label}.` : 'Use Fleet change plan for mixed-version execution.'}</p>
+        <p className="small-note">Single release models one selected row. {activeFleetItem ? `Loaded from ${activeFleetItem.label}.` : 'Use Fleet change plan for mixed-version execution.'}</p>
         <div className="form-grid">
           <ProductField label="Current version"><VersionSelect value={currentVersion} onChange={(value) => {
             setCurrentVersion(value);
@@ -1001,10 +1001,10 @@ export function ScannerSection({ manifest, setManifest, scannerFindings }: { man
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Scanner · Static Ruleset</span>
+        <span className="eyebrow">Scanner</span>
         <h1>Local manifest scan</h1>
       </div>
-      <p>Paste rendered manifests into a browser-only text scan for known deprecated apiVersion/kind pairs. It is not a Kubernetes parser or schema validator.</p>
+      <p>Paste manifests. Findings stay local.</p>
     </div>
 
     <div className="tool-grid scanner-grid scanner-workbench">
@@ -1054,10 +1054,10 @@ export function GuidesSection({ guideVersion, setGuideVersion, setRoute }: { gui
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Guides · Source Notes</span>
+        <span className="eyebrow">Guides</span>
         <h1>EKS {guide.version.version} upgrade guide</h1>
       </div>
-      <p>Source-cited upgrade notes structured around lifecycle, support-fee risk, API removals, add-ons, and validation.</p>
+      <p>Lifecycle notes, API removals, add-ons, and validation checks.</p>
     </div>
 
     <div className="tool-grid guide-grid guide-report-grid">
@@ -1082,7 +1082,7 @@ export function GuidesSection({ guideVersion, setGuideVersion, setRoute }: { gui
           <h2>EKS {guide.version.version} lifecycle brief</h2>
           <Source label={guide.version.sourceLabel} url={guide.version.sourceUrl}/>
         </div>
-        <p className="guide-dek">Use this guide as a source-linked planning artifact before opening a production change. It intentionally stays static and local.</p>
+        <p className="guide-dek">Static notes for planning and review.</p>
         <dl className="guide-facts">
           <div><dt>Release</dt><dd>{guide.version.releaseDate}</dd></div>
           <div><dt>Standard support ends</dt><dd>{guide.version.standardSupportEnd}</dd></div>
@@ -1150,10 +1150,10 @@ Limitations: Local checklist only; verify against source docs and live cluster s
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Add-ons · Readiness Checks</span>
+        <span className="eyebrow">Add-ons</span>
         <h1>Add-on readiness checklist</h1>
       </div>
-      <p>Local checklists and source links for managed add-ons and platform controllers that commonly affect EKS upgrade readiness.</p>
+      <p>Managed add-ons and platform controllers to check before a hop.</p>
     </div>
 
     <div className="tool-grid addon-grid addon-preflight-grid">
@@ -1237,10 +1237,10 @@ export function EvidenceSection({
   return <section className="product-section">
     <div className="section-head">
       <div>
-        <span className="eyebrow">Evidence · Change Packet</span>
+        <span className="eyebrow">Packet</span>
         <h1>Selected scenario change packet</h1>
       </div>
-      <p>Copyable change-review material for the selected scenario, with fleet scope summarized for context and mixed-version execution kept in the Planner fleet mode.</p>
+      <p>Copyable scenario summary with fleet context.</p>
     </div>
 
     <div className="tool-grid evidence-layout">
