@@ -714,6 +714,11 @@ body{
   overflow:auto;
   padding:18px 2px;
 }
+.upgrade-path-track:focus-visible{
+  outline:3px solid rgba(41,109,209,.36);
+  outline-offset:4px;
+  border-radius:10px;
+}
 .upgrade-hop{
   min-width:88px;
   display:grid;

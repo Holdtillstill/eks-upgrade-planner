@@ -125,7 +125,7 @@ Scanner findings: ${scannerFindings.length}`;
         <strong>EKS {selected.version} -&gt; EKS {target}</strong>
         <p>{activeFleetScope ? activeFleetScope.label : 'custom row'} · {fleetSummary.totalClusters} fleet cluster(s)</p>
       </div>
-      <div className="upgrade-path-track" aria-label={`Upgrade hops from EKS ${currentVersion} to EKS ${target}`}>
+      <div className="upgrade-path-track" aria-label={`Upgrade hops from EKS ${currentVersion} to EKS ${target}`} tabIndex={0}>
         {hops.map((hop, index) => <span key={hop} className={`upgrade-hop ${index === 0 ? 'origin' : ''} ${index === hops.length - 1 ? 'target' : ''}`}>
           <em>{index === 0 ? 'now' : index === hops.length - 1 ? 'target' : `hop ${index}`}</em>
           <strong>{hop}</strong>
