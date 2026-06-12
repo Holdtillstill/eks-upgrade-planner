@@ -114,15 +114,15 @@ Scanner findings: ${scannerFindings.length}`;
     <div className="section-head">
       <div>
         <span className="eyebrow">Overview</span>
-        <h1>Upgrade path</h1>
+        <h1>Upgrade plan</h1>
       </div>
-      <p>Rows, deadlines, fees, and blockers.</p>
+      <p>Fleet route, support windows, cost exposure, and blockers.</p>
     </div>
 
     <div className={`upgrade-path-surface ${pathTone}`} aria-label="Selected upgrade path">
       <div className="upgrade-path-primary">
         <span>Selected route</span>
-        <strong>EKS {selected.version} -&gt; EKS {target}</strong>
+        <strong>{selected.version} -&gt; {target}</strong>
         <p>{activeFleetScope ? activeFleetScope.label : 'custom row'} · {fleetSummary.totalClusters} fleet cluster(s)</p>
       </div>
       <div className="upgrade-path-track" aria-label={`Upgrade hops from EKS ${currentVersion} to EKS ${target}`} tabIndex={0}>

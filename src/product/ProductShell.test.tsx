@@ -27,7 +27,7 @@ describe('ProductShell integration', () => {
     render(<ProductShell route={route} setRoute={vi.fn()}/>);
 
     expect(screen.queryByRole('button', { name: /design explorations/i })).toBeNull();
-    expect(screen.getByRole('heading', { name: /upgrade path/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /upgrade plan/i })).toBeTruthy();
   });
 
   it('renders the cost calculator and shows zero remaining fees for a release still safely in standard support', () => {
@@ -79,14 +79,14 @@ describe('ProductShell integration', () => {
     expect(screen.queryByLabelText('Scenario current release')).toBeNull();
     expect(screen.queryByLabelText('Scenario target release')).toBeNull();
     expect(screen.getByLabelText(/delay: 4 month\(s\)/i)).toBeTruthy();
-    expect(screen.getByText(/prod-payments\s*·\s*EKS\s*1\.31\s*->\s*1\.35/i)).toBeTruthy();
+    expect(screen.getByText(/prod-payments\s*·\s*1\.31\s*->\s*1\.35/i)).toBeTruthy();
     expect(screen.getByText(/prod-payments:\s*EKS\s*1\.31\s*->\s*EKS\s*1\.35/i)).toBeTruthy();
     expect(screen.getAllByText(/^5 cluster\(s\)$/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/^active scope$/i)).toBeTruthy();
     expect(screen.queryByRole('button', { name: /refresh tools/i })).toBeNull();
 
     fireEvent.click(within(screen.getByLabelText('Fleet scope prod-payments')).getByRole('button', { name: /^remove$/i }));
-    expect(screen.getByText(/shared-platform\s*·\s*EKS\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
+    expect(screen.getByText(/shared-platform\s*·\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
   });
 
   it('lets fleet rows feed the selected scenario tools', () => {
@@ -97,7 +97,7 @@ describe('ProductShell integration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /use in tools for shared-platform/i }));
 
-    expect(screen.getByText(/shared-platform\s*·\s*EKS\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
+    expect(screen.getByText(/shared-platform\s*·\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
     expect(screen.getAllByText(/^3 cluster\(s\)$/i).length).toBeGreaterThan(0);
 
     fireEvent.change(screen.getByLabelText(/delay: 4 month\(s\)/i), { target: { value: '2' } });
@@ -123,7 +123,7 @@ describe('ProductShell integration', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /shared-platform[\s\S]*model this row/i }));
 
-      expect(screen.getByText(/shared-platform\s*·\s*EKS\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
+      expect(screen.getByText(/shared-platform\s*·\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
       expect((screen.getByLabelText('Scenario clusters') as HTMLInputElement).value).toBe('3');
       expect((screen.getByLabelText('Copyable Cost Model') as HTMLTextAreaElement).value).toContain('Scope: shared-platform');
     } finally {

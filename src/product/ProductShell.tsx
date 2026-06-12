@@ -34,8 +34,8 @@ export function ProductShell({ route, setRoute, afterTabs }: { route: Extract<Ap
   const displayedAddonId = route.detail?.type === 'addon' ? route.detail.addonId : activeAddonId;
   const activeFleetItem = fleetItems.find((item) => item.id === activeFleetItemId) ?? null;
   const selectedScopeLabel = activeFleetItem
-    ? `${activeFleetItem.label} · EKS ${currentVersion} -> ${effectiveTarget}`
-    : `EKS ${currentVersion} -> ${effectiveTarget}`;
+    ? `${activeFleetItem.label} · ${currentVersion} -> ${effectiveTarget}`
+    : `${currentVersion} -> ${effectiveTarget}`;
   const applyFleetItemToScenario = (item: FleetItem) => {
     const normalized = normalizedFleetItem(item);
     setActiveFleetItemId(normalized.id);
@@ -59,13 +59,13 @@ export function ProductShell({ route, setRoute, afterTabs }: { route: Extract<Ap
     <div className="product-main" id="main-content" tabIndex={-1}>
       <header className="product-topbar">
         <div>
-          <span className="eyebrow">Local planner</span>
+          <span className="eyebrow">Plan</span>
           <strong>{selectedScopeLabel}</strong>
         </div>
         <div className="topbar-status">
           <StatusPill version={selectedVersion}/>
-          <span>{selectedVersion.standardSupportEnd} standard end</span>
-          <span>{scannerFindings.length} deprecated API finding(s)</span>
+          <span>Standard support: {selectedVersion.standardSupportEnd}</span>
+          <span>{scannerFindings.length} API finding(s)</span>
         </div>
       </header>
 
