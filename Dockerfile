@@ -3,6 +3,8 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 
+RUN apk upgrade --no-cache libcrypto3 libssl3
+
 ARG SITE_URL
 ARG SITE_URL_ALLOW_LOCALHOST
 ENV SITE_URL=${SITE_URL} \
@@ -16,6 +18,8 @@ RUN npm run build
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
+
+RUN apk upgrade --no-cache libcrypto3 libssl3
 
 ARG APP_VERSION=0.1.0
 ARG SOURCE_VERSION=unknown
