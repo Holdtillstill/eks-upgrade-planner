@@ -55,6 +55,14 @@ export function OverviewSection({
   const activeFleetItem = fleetItems.find((item) => item.id === activeFleetItemId) ?? null;
   const activeFleetScope = activeFleetItem ? normalizedFleetItem(activeFleetItem) : null;
   const fleetNeedsAction = fleetSummary.unsupportedClusters > 0 || fleetSummary.extendedClusters > 0 || fleetSummary.endingSoonClusters > 0;
+  const pathTone = fleetSummary.unsupportedClusters > 0 || scannerFindings.length > 0 ? 'bad' : fleetNeedsAction || fleetSummary.exposureTotal > 0 ? 'warn' : 'ok';
+  const pathAction = scannerFindings.length
+    ? 'Fix API removals'
+    : fleetSummary.unsupportedClusters
+    ? 'Recover unsupported rows'
+    : fleetNeedsAction
+    ? 'Prioritize deadlines'
+    : 'Build change packet';
   const tasks = [
     { id: 'owners', label: 'Fleet scope reviewed', detail: `${fleetSummary.totalClusters} cluster(s) across ${fleetItems.length} row(s)` },
     { id: 'addons', label: 'Add-on checks selected', detail: `${selectedAddonIds.length} selected group(s)` },
@@ -106,31 +114,50 @@ Scanner findings: ${scannerFindings.length}`;
     <div className="section-head">
       <div>
         <span className="eyebrow">Overview</span>
-        <h1>Fleet risk summary</h1>
+        <h1>Upgrade path</h1>
       </div>
-      <p>Edit fleet rows, then open cost, plan, scanner, or packet views.</p>
+      <p>Rows, deadlines, fees, and blockers.</p>
+    </div>
+
+    <div className={`upgrade-path-surface ${pathTone}`} aria-label="Selected upgrade path">
+      <div className="upgrade-path-primary">
+        <span>Selected route</span>
+        <strong>EKS {selected.version} -&gt; EKS {target}</strong>
+        <p>{activeFleetScope ? activeFleetScope.label : 'custom row'} · {fleetSummary.totalClusters} fleet cluster(s)</p>
+      </div>
+      <div className="upgrade-path-track" aria-label={`Upgrade hops from EKS ${currentVersion} to EKS ${target}`}>
+        {hops.map((hop, index) => <span key={hop} className={`upgrade-hop ${index === 0 ? 'origin' : ''} ${index === hops.length - 1 ? 'target' : ''}`}>
+          <em>{index === 0 ? 'now' : index === hops.length - 1 ? 'target' : `hop ${index}`}</em>
+          <strong>{hop}</strong>
+        </span>)}
+      </div>
+      <div className="upgrade-path-meta">
+        <div><span>Deadline</span><strong>{fleetSummary.nextDeadline ? `${fleetSummary.nextDeadline.days}d` : 'Clear'}</strong><em>{fleetSummary.nextDeadline?.version ? `EKS ${fleetSummary.nextDeadline.version}` : 'no deadline in scope'}</em></div>
+        <div><span>Exposure</span><strong>{fleetSummary.unsupportedClusters ? `${fleetSummary.unsupportedClusters} past` : formatCurrency(fleetSummary.exposureTotal)}</strong><em>{monthsDelayed} month window</em></div>
+        <div><span>Next</span><strong>{pathAction}</strong><em>{scannerFindings.length} API finding(s)</em></div>
+      </div>
     </div>
 
     <div className="overview-control-strip" aria-label="Fleet planning controls">
-      <ProductField label={`Shared delay model: ${monthsDelayed} month(s)`}><input type="range" min="1" max="24" value={monthsDelayed} onChange={(event) => setMonthsDelayed(Number(event.target.value))}/></ProductField>
+      <ProductField label={`Delay: ${monthsDelayed} month(s)`}><input type="range" min="1" max="24" value={monthsDelayed} onChange={(event) => setMonthsDelayed(Number(event.target.value))}/></ProductField>
       <div className="release-control-note selected-row-note">
         <span>Active row</span>
         <strong>{activeFleetScope ? `${activeFleetScope.label}: EKS ${activeFleetScope.version} -> EKS ${activeFleetScope.targetVersion}` : `Custom: EKS ${selected.version} -> EKS ${target}`}</strong>
-        <p>{activeFleetScope ? `${fleetItemClusters(activeFleetScope)} cluster(s). Used by Cost, Planner, Packet.` : `${clusterCount} cluster(s). Edit inside a focused tool.`}</p>
+        <p>{activeFleetScope ? `${fleetItemClusters(activeFleetScope)} cluster(s)` : `${clusterCount} cluster(s)`}</p>
       </div>
       <div className="release-control-note">
         <span>Fleet</span>
-        <strong>{fleetSummary.totalClusters} fleet cluster(s)</strong>
-        <p>{fleetItems.length} row(s) drive aggregate cost and plan.</p>
+        <strong>{fleetSummary.totalClusters} cluster(s)</strong>
+        <p>{fleetItems.length} row(s)</p>
       </div>
     </div>
 
     <div className="metric-row overview-metrics">
-      <ProductMetric label="Fleet clusters" value={String(fleetSummary.totalClusters)} detail={`${fleetItems.length} modeled scope row(s)`}/>
+      <ProductMetric label="Clusters" value={String(fleetSummary.totalClusters)} detail={`${fleetItems.length} scope row(s)`}/>
       <ProductMetric label="Past support" value={String(fleetSummary.unsupportedClusters)} detail="Clusters past extended support" tone={fleetSummary.unsupportedClusters ? 'bad' : 'ok'}/>
-      <ProductMetric label="Extended support" value={String(fleetSummary.extendedClusters)} detail="Clusters in extended support billing" tone={fleetSummary.extendedClusters ? 'warn' : 'ok'}/>
-      <ProductMetric label="Fleet fees" value={formatCurrency(fleetSummary.exposureTotal)} detail={`${monthsDelayed} month support-fee overlap`} tone={fleetSummary.exposureTotal > 0 ? 'warn' : 'ok'}/>
-      <ProductMetric label="Next deadline" value={fleetSummary.nextDeadline ? `${fleetSummary.nextDeadline.days}d` : 'Clear'} detail={fleetSummary.nextDeadline?.label ?? 'No future deadline in scope'} tone={fleetNeedsAction ? 'warn' : 'ok'}/>
+      <ProductMetric label="Billing ext." value={String(fleetSummary.extendedClusters)} detail="Clusters in extended support" tone={fleetSummary.extendedClusters ? 'warn' : 'ok'}/>
+      <ProductMetric label="Fees" value={formatCurrency(fleetSummary.exposureTotal)} detail={`${monthsDelayed} month overlap`} tone={fleetSummary.exposureTotal > 0 ? 'warn' : 'ok'}/>
+      <ProductMetric label="Deadline" value={fleetSummary.nextDeadline ? `${fleetSummary.nextDeadline.days}d` : 'Clear'} detail={fleetSummary.nextDeadline?.label ?? 'No future deadline'} tone={fleetNeedsAction ? 'warn' : 'ok'}/>
     </div>
 
     <div className="incident-board overview-workspace">
@@ -143,10 +170,10 @@ Scanner findings: ${scannerFindings.length}`;
 
       <section className="product-panel fleet-panel">
         <div className="panel-title">
-          <h2>Fleet Scope</h2>
+          <h2>Fleet scope</h2>
           <Source label={dataFreshness.sourceLabel} url={dataFreshness.sourceUrl}/>
         </div>
-        <p className="fleet-caption">Rows are editable. Use one row in focused tools when needed.</p>
+        <p className="fleet-caption">Editable rows feed cost, plan, scanner, and packet views.</p>
         <div className="fleet-list" aria-label="Editable fleet scope rows">
           {fleetItems.map((rawItem) => {
             const item = normalizedFleetItem(rawItem);
@@ -195,7 +222,7 @@ Scanner findings: ${scannerFindings.length}`;
 
       <section className="product-panel change-packet-panel">
         <div className="panel-title">
-          <h2>Change Packet</h2>
+          <h2>Change packet</h2>
           <CopyButton text={overviewBrief} label="Copy summary"/>
         </div>
         <div className={`response-token ${tone}`}>

@@ -27,7 +27,7 @@ describe('ProductShell integration', () => {
     render(<ProductShell route={route} setRoute={vi.fn()}/>);
 
     expect(screen.queryByRole('button', { name: /design explorations/i })).toBeNull();
-    expect(screen.getByRole('heading', { name: /fleet risk summary/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /upgrade path/i })).toBeTruthy();
   });
 
   it('renders the cost calculator and shows zero remaining fees for a release still safely in standard support', () => {
@@ -78,10 +78,10 @@ describe('ProductShell integration', () => {
 
     expect(screen.queryByLabelText('Scenario current release')).toBeNull();
     expect(screen.queryByLabelText('Scenario target release')).toBeNull();
-    expect(screen.getByLabelText(/shared delay model: 4 month\(s\)/i)).toBeTruthy();
+    expect(screen.getByLabelText(/delay: 4 month\(s\)/i)).toBeTruthy();
     expect(screen.getByText(/prod-payments\s*·\s*EKS\s*1\.31\s*->\s*1\.35/i)).toBeTruthy();
     expect(screen.getByText(/prod-payments:\s*EKS\s*1\.31\s*->\s*EKS\s*1\.35/i)).toBeTruthy();
-    expect(screen.getByText(/5 cluster\(s\)\.\s*used by cost, planner, packet/i)).toBeTruthy();
+    expect(screen.getAllByText(/^5 cluster\(s\)$/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/^active scope$/i)).toBeTruthy();
     expect(screen.queryByRole('button', { name: /refresh tools/i })).toBeNull();
 
@@ -98,10 +98,10 @@ describe('ProductShell integration', () => {
     fireEvent.click(screen.getByRole('button', { name: /use in tools for shared-platform/i }));
 
     expect(screen.getByText(/shared-platform\s*·\s*EKS\s*1\.30\s*->\s*1\.35/i)).toBeTruthy();
-    expect(screen.getAllByText(/3 cluster\(s\)\.\s*used by cost, planner, packet/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^3 cluster\(s\)$/i).length).toBeGreaterThan(0);
 
-    fireEvent.change(screen.getByLabelText(/shared delay model: 4 month\(s\)/i), { target: { value: '2' } });
-    expect(screen.getByLabelText(/shared delay model: 2 month\(s\)/i)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/delay: 4 month\(s\)/i), { target: { value: '2' } });
+    expect(screen.getByLabelText(/delay: 2 month\(s\)/i)).toBeTruthy();
   });
 
   it('carries fleet cost scope into the cost calculator', () => {
