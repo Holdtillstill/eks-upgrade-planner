@@ -319,3 +319,164 @@ body{background:#eef2f6;color:#172033}
 @media (max-width:1688px){.product-shell{grid-template-columns:224px minmax(0,1fr)}.product-sources{grid-column:2;grid-template-columns:minmax(180px,.25fr) minmax(240px,.35fr) minmax(0,1fr);border-left:0;border-top:1px solid var(--line)}}
 @media (max-width:1240px){.product-sources{grid-template-columns:repeat(2,minmax(0,1fr))}.source-list{grid-column:1/-1}}
 @media (max-width:820px){.product-shell{display:block}.product-rail{background:#161b22}.product-main{background:#eef2f6}.product-sources{width:100%;max-width:100%;grid-template-columns:1fr;padding:16px}.product-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.product-tabs a{justify-content:center;text-align:center}.section-head{gap:10px}.overview-control-strip,.metric-row,.readiness-strip,.lifecycle-gate-row,.product-gate-grid,.form-grid,.segmented,.checklist-grid,.scenario-ledger,.guide-facts,.evidence-summary,.fleet-row,.cost-scope-metrics,.cost-scope-list{grid-template-columns:1fr}}
+
+/* Command deck pass: restore depth and make the planner feel like a live ops surface. */
+:root{color:#eef6ff;background:#071019}
+body{
+  background:
+    radial-gradient(circle at 74% -10%, rgba(51,156,135,.18), transparent 32rem),
+    radial-gradient(circle at 18% 18%, rgba(198,126,49,.12), transparent 28rem),
+    #071019;
+  color:#eef6ff;
+}
+.product-shell{
+  --bg:#071019;
+  --rail:#08111b;
+  --surface:#0d1824;
+  --surface-2:#111f2d;
+  --paper:#101b27;
+  --paper-ink:#eef6ff;
+  --paper-muted:#9fb2c5;
+  --paper-line:rgba(159,178,197,.18);
+  --paper-soft:#0a141e;
+  --ink:#eef6ff;
+  --muted:#9fb2c5;
+  --line:rgba(159,178,197,.18);
+  --line-strong:rgba(159,178,197,.34);
+  --accent:#32c8a3;
+  --accent-2:#d9913f;
+  --danger:#ff766b;
+  --ok:#78d59a;
+  grid-template-columns:230px minmax(0,1fr);
+  background:var(--bg);
+  color:var(--ink);
+}
+.product-shell h1{color:#f8fbff;font-size:clamp(2.45rem,3.5vw,4.7rem);letter-spacing:0}
+.product-shell h2,.product-shell h3{color:#f8fbff}
+.product-shell p,.product-shell li{color:var(--muted)}
+.product-main{
+  background:
+    linear-gradient(180deg, rgba(50,200,163,.06), transparent 310px),
+    var(--bg);
+  padding:24px 28px 44px;
+}
+.product-rail{
+  background:
+    linear-gradient(180deg, rgba(50,200,163,.08), transparent 36%),
+    #08111b;
+  border-right:1px solid rgba(159,178,197,.14);
+}
+.product-brand{border-bottom-color:rgba(159,178,197,.14)}
+.product-brand strong{color:#fff}
+.product-brand em{color:#9fb2c5}
+.product-brand span{background:linear-gradient(135deg,#32c8a3,#d9913f)}
+.product-tabs a{color:#b9c7d6}
+.product-tabs a.active{
+  background:rgba(50,200,163,.12);
+  border-color:rgba(50,200,163,.32);
+  color:#fff;
+  box-shadow:inset 3px 0 0 var(--accent),0 14px 36px rgba(0,0,0,.18);
+}
+.product-topbar{
+  border-bottom-color:var(--line);
+  background:linear-gradient(180deg, rgba(7,16,25,.86), rgba(7,16,25,.62));
+  backdrop-filter:blur(18px);
+  position:sticky;
+  top:0;
+  z-index:5;
+}
+.product-topbar strong{color:#f8fbff}
+.topbar-status span:not(.pill){background:#0d1824;border-color:var(--line);color:#c6d4e2}
+.section-head{
+  border-bottom-color:var(--line);
+  animation: deck-rise 520ms cubic-bezier(.2,.7,.2,1) both;
+}
+.metric-row,.overview-control-strip,.readiness-strip,.lifecycle-gate-row,.product-gate-grid,.cost-scope-metrics,.scenario-ledger,.cost-ledger,.guide-facts,.evidence-summary{
+  background:rgba(159,178,197,.14);
+  border-color:var(--line);
+}
+.product-panel,.copyable-report,.fleet-panel,.product-table-wrap,.gate-card,.release-control-note,.response-token,.action-list a,.checklist-grid label,.preflight-checklist label,.cost-explainer,.selected-scenario-note,.trust-box,.rail-block{
+  background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.018)), var(--surface);
+  border-color:var(--line);
+  color:var(--ink)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.16);
+}
+.gate-card strong,
+.gate-card p,
+.gate-card em,
+.product-panel h2,
+.product-panel h3,
+.fleet-panel h2,
+.panel-title strong {
+  color: #f8fbff !important;
+}
+.gate-card p,
+.gate-card em,
+.fleet-caption,
+.product-panel p {
+  color: #b8c7d7 !important;
+}
+.product-panel,.fleet-panel,.product-table-wrap{border-radius:10px}
+.product-metric{
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015)), var(--surface);
+  border-right-color:var(--line);
+}
+.product-metric strong{color:#f8fbff}
+.product-metric span,.release-control-note span,.product-field span,.fleet-cell>span,.cost-ledger dt,.guide-facts dt,.evidence-summary span{color:#8ca0b5}
+.fleet-row{background:#0d1824;border-top-color:var(--line)}
+.fleet-row.active{background:rgba(50,200,163,.1);box-shadow:inset 3px 0 0 var(--accent)}
+.fleet-cell input,.fleet-cell select,.product-field select,.product-field input,.manifest-panel textarea,.copyable-report textarea{
+  background:#071019;
+  color:#eef6ff;
+  border-color:rgba(159,178,197,.26);
+}
+.product-table caption,.product-table th{background:#0a141e;color:#90a4b8}
+.product-table td,.product-table tbody th,.finance-table th,.finance-table td{color:#d8e4f0;border-color:var(--line)}
+.product-table tr.selected td,.product-table tr.selected th[scope="row"],.finance-table tr.selected td{background:rgba(50,200,163,.08)}
+.finance-paper,.evidence-paper,.guide-article{background:var(--paper);color:var(--paper-ink);border-color:var(--paper-line)}
+.finance-paper>strong,.cost-ledger dd,.guide-facts dd,.evidence-summary strong{color:#f8fbff}
+.scenario-ledger button,.cost-scope-list button,.segmented button,.guide-index a,.addon-index a{background:#0d1824;color:#eef6ff;border-color:var(--line)}
+.scenario-ledger button.active,.cost-scope-list button.active,.segmented button.active,.guide-index a.active,.addon-index a.active{
+  background:rgba(50,200,163,.12);
+  color:#f8fbff;
+  border-color:rgba(50,200,163,.38);
+}
+.product-sources{
+  background:#0a141e;
+  border-top-color:var(--line);
+}
+.product-sources strong{color:#f8fbff}
+.terminal-output,.terminal-output pre,.command-list code,.finding-list pre{
+  background:#040a11;
+  border-color:rgba(50,200,163,.2);
+  color:#d9fff4;
+}
+.product-shell button{
+  background:#0d1824;
+  color:#eef6ff;
+  border-color:var(--line);
+}
+.product-shell button:hover,.product-shell a:hover{border-color:rgba(50,200,163,.55);color:#c9fff0}
+.product-shell .copy,.release-stations button.target{
+  background:var(--accent);
+  color:#02100c;
+  border-color:var(--accent);
+}
+@supports (animation-timeline:view()){
+  .product-panel,.metric-row,.overview-control-strip,.product-table-wrap{
+    animation:deck-rise both ease-out;
+    animation-range:entry 6% cover 24%;
+    animation-timeline:view();
+  }
+}
+@keyframes deck-rise{
+  from{opacity:.18;transform:translateY(22px) scale(.992)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@media (prefers-reduced-motion:reduce){
+  .section-head,.product-panel,.metric-row,.overview-control-strip,.product-table-wrap{animation:none!important}
+}
+@media (max-width:820px){
+  .product-main{background:var(--bg);padding:16px}
+  .product-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
