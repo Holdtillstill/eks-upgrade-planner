@@ -441,6 +441,15 @@ body{
   color:#f8fbff;
   border-color:rgba(50,200,163,.38);
 }
+.guide-index a span,
+.addon-index a span {
+  color:#b8c7d7!important;
+}
+.dense-list p {
+  background:#0d1824!important;
+  border-color:var(--line)!important;
+  color:#b8c7d7!important;
+}
 .product-sources{
   background:#0a141e;
   border-top-color:var(--line);
@@ -451,6 +460,25 @@ body{
   border-color:rgba(50,200,163,.2);
   color:#d9fff4;
 }
+.finding-list article,
+.finding-list article.critical,
+.finding-list article.warning {
+  background:#0d1824!important;
+  border-color:var(--line)!important;
+  color:#eef6ff!important;
+}
+.finding-list article p {
+  color:#b8c7d7!important;
+}
+.finding-list article strong {
+  color:#f8fbff!important;
+}
+.finding-list article span {
+  color:#ffc06f!important;
+}
+.finding-list article.critical span {
+  color:#ffaaa4!important;
+}
 .product-shell button{
   background:#0d1824;
   color:#eef6ff;
@@ -458,10 +486,13 @@ body{
 }
 .product-shell button:hover,.product-shell a:hover{border-color:rgba(50,200,163,.55);color:#c9fff0}
 .product-shell .copy,.release-stations button.target{
-  background:var(--accent);
+  background:#7bf2c7!important;
   color:#02100c;
-  border-color:var(--accent);
+  border-color:#7bf2c7!important;
 }
+.product-shell .eyebrow{color:#b8c7d7!important}
+.fleet-status.warn{color:#ffc06f!important;background:rgba(217,145,63,.14)!important}
+.privacy-note-link{color:#91f2df!important}
 @supports (animation-timeline:view()){
   .product-panel,.metric-row,.overview-control-strip,.product-table-wrap{
     animation:deck-rise both ease-out;
@@ -470,9 +501,10 @@ body{
   }
 }
 @keyframes deck-rise{
-  from{opacity:.18;transform:translateY(22px) scale(.992)}
-  to{opacity:1;transform:translateY(0) scale(1)}
+  from{transform:translateY(22px) scale(.992)}
+  to{transform:translateY(0) scale(1)}
 }
+.section-head,.product-panel,.metric-row,.overview-control-strip,.product-table-wrap{opacity:1!important}
 @media (prefers-reduced-motion:reduce){
   .section-head,.product-panel,.metric-row,.overview-control-strip,.product-table-wrap{animation:none!important}
 }
