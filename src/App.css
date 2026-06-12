@@ -512,3 +512,120 @@ body{
   .product-main{background:var(--bg);padding:16px}
   .product-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Luminous correction pass: bright product workspace, dark rail, no gloomy dashboard skin. */
+:root{color:#172033!important;background:#f4f7fa!important}
+body{
+  background:
+    linear-gradient(135deg, rgba(221,233,241,.9), rgba(255,255,255,.78) 46%, rgba(239,247,244,.96)),
+    #f4f7fa!important;
+  color:#172033!important;
+}
+.product-shell{
+  --bg:#f4f7fa!important;
+  --rail:#0d1722!important;
+  --surface:#ffffff!important;
+  --surface-2:#f8fafc!important;
+  --paper:#ffffff!important;
+  --paper-ink:#172033!important;
+  --paper-muted:#536276!important;
+  --paper-line:#d8e1ea!important;
+  --paper-soft:#f4f8fb!important;
+  --ink:#172033!important;
+  --muted:#536276!important;
+  --line:#d8e1ea!important;
+  --line-strong:#b9c7d5!important;
+  --accent:#118374!important;
+  --accent-2:#b56b1d!important;
+  --danger:#b8322c!important;
+  --ok:#19764a!important;
+  grid-template-columns:224px minmax(0,1fr)!important;
+  background:var(--bg)!important;
+  color:var(--ink)!important;
+}
+.product-main{
+  background:
+    radial-gradient(circle at 82% 0%, rgba(17,131,116,.1), transparent 28rem),
+    linear-gradient(180deg, rgba(255,255,255,.78), rgba(244,247,250,1) 24rem)!important;
+  padding:22px 28px 44px!important;
+}
+.product-shell h1{color:#101722!important;font-size:clamp(2.2rem,3vw,3.8rem)!important}
+.product-shell h2,.product-shell h3,.product-panel h2,.product-panel h3,.fleet-panel h2,.panel-title strong{color:#172033!important}
+.product-shell p,.product-shell li,.product-panel p,.gate-card p,.gate-card em,.fleet-caption{color:#536276!important}
+.product-rail{
+  background:#0d1722!important;
+  border-right-color:#1f2d3b!important;
+}
+.product-brand{color:#ffffff!important;border-bottom-color:rgba(255,255,255,.1)!important}
+.product-brand strong{color:#ffffff!important}
+.product-brand em{color:#aeb9c7!important}
+.product-tabs a{color:#b9c5d2!important}
+.product-tabs a.active{
+  background:#182637!important;
+  border-color:rgba(255,255,255,.14)!important;
+  color:#ffffff!important;
+  box-shadow:inset 3px 0 0 #49d5c3!important;
+}
+.product-topbar{
+  background:rgba(244,247,250,.86)!important;
+  border-bottom-color:var(--line)!important;
+  backdrop-filter:blur(18px);
+}
+.product-topbar strong{color:#172033!important}
+.topbar-status span:not(.pill){background:#ffffff!important;border-color:#d8e1ea!important;color:#536276!important}
+.metric-row,.overview-control-strip,.readiness-strip,.lifecycle-gate-row,.product-gate-grid,.cost-scope-metrics,.scenario-ledger,.cost-ledger,.guide-facts,.evidence-summary{
+  background:#ffffff!important;
+  border-color:var(--line)!important;
+}
+.product-panel,.copyable-report,.fleet-panel,.product-table-wrap,.gate-card,.release-control-note,.response-token,.action-list a,.checklist-grid label,.preflight-checklist label,.cost-explainer,.selected-scenario-note,.trust-box,.rail-block,.finding-list article,.finding-list article.critical,.finding-list article.warning,.dense-list p{
+  background:#ffffff!important;
+  border-color:var(--line)!important;
+  color:#172033!important;
+  box-shadow:0 18px 48px rgba(16,23,34,.06)!important;
+}
+.product-metric{background:#ffffff!important;border-right-color:var(--line)!important}
+.product-metric strong,.cost-ledger dd,.guide-facts dd,.evidence-summary strong,.finding-list article strong{color:#172033!important}
+.product-metric span,.release-control-note span,.product-field span,.fleet-cell>span,.cost-ledger dt,.guide-facts dt,.evidence-summary span,.guide-index a span,.addon-index a span{color:#536276!important}
+.fleet-row{background:#ffffff!important;border-top-color:var(--line)!important}
+.fleet-row.active{background:#eef9f6!important;box-shadow:inset 3px 0 0 var(--accent)!important}
+.fleet-cell input,.fleet-cell select,.product-field select,.product-field input,.manifest-panel textarea,.copyable-report textarea{
+  background:#ffffff!important;
+  color:#172033!important;
+  border-color:#cbd7e2!important;
+}
+.product-table caption,.product-table th{background:#f7fafc!important;color:#56677a!important}
+.product-table td,.product-table tbody th,.finance-table th,.finance-table td{color:#263246!important;border-color:#dfe7ef!important}
+.scenario-ledger button,.cost-scope-list button,.segmented button,.guide-index a,.addon-index a{
+  background:#ffffff!important;
+  color:#172033!important;
+  border-color:#cbd7e2!important;
+}
+.scenario-ledger button.active,.cost-scope-list button.active,.segmented button.active,.guide-index a.active,.addon-index a.active{
+  background:#eaf8f5!important;
+  color:#102f2c!important;
+  border-color:#9bd2c9!important;
+}
+.terminal-output,.terminal-output pre,.command-list code,.finding-list pre{
+  background:#101722!important;
+  border-color:#263548!important;
+  color:#d8fff4!important;
+}
+.finding-list article p{color:#536276!important}
+.finding-list article span{color:#9b5a18!important}
+.finding-list article.critical span{color:#b8322c!important}
+.product-shell button{background:#ffffff!important;color:#172033!important;border-color:#cbd7e2!important}
+.product-shell .copy,.release-stations button.target{
+  background:#172033!important;
+  color:#ffffff!important;
+  border-color:#172033!important;
+}
+.product-shell .eyebrow{color:#647386!important}
+.fleet-status.warn{color:#9b5a18!important;background:#fff3df!important}
+.product-sources{background:#e9eef4!important;border-top-color:var(--line)!important}
+.product-sources strong{color:#172033!important}
+.privacy-note-link{color:#0d6f64!important}
+.gate-card strong{color:#172033!important}
+.gate-card p,.gate-card em{color:#536276!important}
+.gate-card span{background:#ffffff!important}
+.product-sources .eyebrow,.source-list .eyebrow{color:#465568!important}
+.design-link{display:none!important}
