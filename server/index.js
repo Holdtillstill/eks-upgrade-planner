@@ -277,6 +277,11 @@ async function handleRequest(req, res) {
       return;
     }
 
+    if (url.pathname === '/api/events') {
+      sendJson(req, res, 202, {});
+      return;
+    }
+
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.setHeader('allow', 'GET, HEAD');
       sendJson(req, res, 405, { status: 'method_not_allowed' });

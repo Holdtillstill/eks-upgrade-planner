@@ -40,12 +40,24 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [{
-      name: 'site-url-metadata',
-      transformIndexHtml(html) {
-        return html.replaceAll('__SITE_URL__', siteUrl)
+    plugins: [
+      {
+        name: 'site-url-metadata',
+        transformIndexHtml(html) {
+          return html.replaceAll('__SITE_URL__', siteUrl)
+        },
       },
-    }],
+      {
+        name: 'local-visitor-events',
+        configureServer(server) {
+          server.middlewares.use('/api/events', (_request, response) => {
+            response.statusCode = 202
+            response.setHeader('content-type', 'application/json; charset=utf-8')
+            response.end('{}')
+          })
+        },
+      },
+    ],
     test: {
       environment: 'jsdom',
       setupFiles: './src/test/setup.ts',
