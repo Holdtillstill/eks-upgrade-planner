@@ -7,6 +7,7 @@ import {
   parseAwsPlatformMarkdown,
   parseEndOfLifeData,
   parseStringArray,
+  syncEksData,
 } from './sync-eks-data.js';
 
 describe('EKS data sync helpers', () => {
@@ -141,5 +142,19 @@ const EKS_GUIDE_ROUTES = [
       expect.objectContaining({ version: '1.35', latestPlatform: '1.35-eks-13' }),
       expect.objectContaining({ version: '1.29', sourceLabel: 'endoflife.date Amazon EKS lifecycle archive' }),
     ]);
+  });
+
+  it('skips drift validation when live source fetches are unavailable', async () => {
+    process.env.EKS_DATA_FORCE_FETCH_FAILURE = '1';
+    try {
+      const result = await syncEksData({ write: false });
+      expect(result).toMatchObject({
+        changed: false,
+        skipped: true,
+      });
+      expect(result.warnings.join('\n')).toContain('EKS live source check skipped');
+    } finally {
+      delete process.env.EKS_DATA_FORCE_FETCH_FAILURE;
+    }
   });
 });

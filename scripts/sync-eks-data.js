@@ -8,6 +8,16 @@ export const AWS_LIFECYCLE_HTML_URL = 'https://docs.aws.amazon.com/eks/latest/us
 export const AWS_PLATFORM_HTML_URL = 'https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.html';
 export const ENDOFLIFE_EKS_URL = 'https://endoflife.date/api/amazon-eks.json';
 
+class SourceFetchError extends Error {
+  constructor(message, { url, status, cause } = {}) {
+    super(message);
+    this.name = 'SourceFetchError';
+    this.url = url;
+    this.status = status;
+    this.cause = cause;
+  }
+}
+
 const END_OF_LIFE_SOURCE_LABEL = 'endoflife.date Amazon EKS lifecycle archive';
 const END_OF_LIFE_SOURCE_URL = 'https://endoflife.date/amazon-eks';
 const AWS_SOURCE_LABEL = 'AWS EKS Kubernetes version lifecycle';
@@ -308,22 +318,45 @@ function diffStringArray(existing, expected) {
 }
 
 async function fetchText(url) {
-  const response = await fetch(url, {
-    headers: {
-      'user-agent': 'eks-upgrade-planner-data-sync/1.0',
-    },
-  });
-  if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+  if (process.env.EKS_DATA_FORCE_FETCH_FAILURE === '1') {
+    throw new SourceFetchError(`Forced source fetch failure for ${url}`, { url });
+  }
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        'user-agent': 'Mozilla/5.0 (compatible; eks-upgrade-planner-data-sync/1.0; +https://eks-upgrade-planner.bozhi.dev)',
+        accept: 'text/markdown,text/html,application/json,text/plain;q=0.9,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.9',
+        'cache-control': 'no-cache',
+      },
+    });
+  } catch (error) {
+    throw new SourceFetchError(`Failed to fetch ${url}: ${error.message}`, { url, cause: error });
+  }
+  if (!response.ok) {
+    throw new SourceFetchError(`Failed to fetch ${url}: ${response.status} ${response.statusText}`, {
+      url,
+      status: response.status,
+    });
+  }
   return response.text();
 }
 
 async function fetchSource(primaryUrl, fallbackUrl) {
   try {
     return { format: 'markdown', text: await fetchText(primaryUrl) };
-  } catch (error) {
-    if (!fallbackUrl) throw error;
-    const fallbackText = await fetchText(fallbackUrl);
-    return { format: 'html', text: fallbackText };
+  } catch (primaryError) {
+    if (!fallbackUrl) throw primaryError;
+    try {
+      const fallbackText = await fetchText(fallbackUrl);
+      return { format: 'html', text: fallbackText };
+    } catch (fallbackError) {
+      throw new SourceFetchError(
+        `Failed to fetch ${primaryUrl} or fallback ${fallbackUrl}: ${primaryError.message}; ${fallbackError.message}`,
+        { url: fallbackUrl, status: fallbackError.status, cause: fallbackError },
+      );
+    }
   }
 }
 
@@ -353,7 +386,24 @@ export async function syncEksData({ write = false } = {}) {
   const sourceVersions = parseStaticVersions(versionsSource, 'eksVersions');
   const publicVersions = parseStaticVersions(publicRoutesSource, 'publicEksVersions');
   const serverGuideRoutes = parseStringArray(serverRoutesSource, 'EKS_GUIDE_ROUTES');
-  const liveSources = await loadLiveSources();
+  let liveSources;
+  try {
+    liveSources = await loadLiveSources();
+  } catch (error) {
+    if (error instanceof SourceFetchError) {
+      return {
+        changed: false,
+        diffs: [],
+        expectedVersions: sourceVersions,
+        skipped: true,
+        warnings: [
+          `EKS live source check skipped: ${error.message}`,
+          'Checked-in static data was left unchanged. Data drift will be detected when the public sources are reachable again.',
+        ],
+      };
+    }
+    throw error;
+  }
   const expectedVersions = buildExpectedVersions(
     sourceVersions,
     liveSources.lifecycleVersions,
@@ -408,7 +458,17 @@ async function main() {
 
   const result = await syncEksData({ write });
   if (write) {
+    if (result.skipped) {
+      console.warn(result.warnings.join('\n'));
+      console.log('Skipped EKS data refresh because live sources were unavailable.');
+      return;
+    }
     console.log(result.changed ? 'Updated EKS static data from live sources.' : 'EKS static data already matches live sources.');
+    return;
+  }
+  if (result.skipped) {
+    console.warn(result.warnings.join('\n'));
+    console.log('Skipped EKS static data drift check because live sources were unavailable.');
     return;
   }
   console.log('EKS static data matches live sources.');
