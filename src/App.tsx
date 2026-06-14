@@ -1,54 +1,66 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
-import './App.css';
+import { Moon, Sun } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { ProductShell } from './product/ProductShell';
-import { navigate } from './lib/navigation';
-import { resolveAppRoute, type AppRoute } from './lib/routes';
+import V2App from './app-v2/App';
 
-const disabledDesignFlags = ['0', 'false', 'no', 'off'];
-const designExplorationsAvailable = import.meta.env.DEV &&
-  !disabledDesignFlags.includes(String(import.meta.env.VITE_ENABLE_DESIGN_EXPLORATIONS ?? '').trim().toLowerCase());
+type ThemeMode = 'light' | 'dark';
 
-const LazyDesignExplorations = designExplorationsAvailable
-  ? lazy(() => import('./design/DesignExplorations'))
-  : null;
+const THEME_STORAGE_KEY = 'eks-upgrade-planner:theme';
 
-function routeFromLocation(): AppRoute {
-  return resolveAppRoute(window.location.pathname, { allowDesignExplorations: designExplorationsAvailable });
+function storedTheme(): ThemeMode {
+  if (typeof window === 'undefined') return 'light';
+  return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light';
 }
 
-export function AppView() {
-  const [route, setRoute] = useState<AppRoute>(routeFromLocation());
-  const designNavLink = designExplorationsAvailable
-    ? <button className="design-link" type="button" onClick={() => navigate('/1', setRoute)}>Design explorations</button>
-    : undefined;
+function WorkspaceControls({
+  theme,
+  setTheme,
+}: {
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
+}) {
+  const nextTheme = theme === 'dark' ? 'light' : 'dark';
 
-  useEffect(() => {
-    const onPop = () => setRoute(routeFromLocation());
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
-
-  if (route.kind === 'design') {
-    if (LazyDesignExplorations) {
-      return <Suspense fallback={<main className="page"><p>Loading design exploration...</p></main>}>
-        <LazyDesignExplorations route={route.route} setRoute={setRoute}/>
-      </Suspense>;
-    }
-
-    return <ProductShell
-      route={{ kind: 'product', tab: 'overview', canonicalPath: '/app' }}
-      setRoute={setRoute}
-      afterTabs={designNavLink}
-    />;
-  }
-
-  return <ProductShell route={route} setRoute={setRoute} afterTabs={designNavLink}/>;
+  return <div className="flex items-center gap-2">
+    <button
+      type="button"
+      aria-label={`Switch to ${nextTheme} theme`}
+      title={`Switch to ${nextTheme} theme`}
+      onClick={() => setTheme(nextTheme)}
+      className="inline-flex size-7 items-center justify-center rounded-md border border-chrome-border bg-chrome-surface text-chrome-text transition-colors hover:bg-chrome-hover"
+    >
+      {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+    </button>
+  </div>;
 }
 
 function App() {
+  const [theme, setTheme] = useState<ThemeMode>(storedTheme);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.appVersion = 'v2';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'dark' ? '#0D1117' : '#F0F4F8',
+    );
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.dataset.appVersion = 'v2';
+  }, []);
+
+  const controls = useMemo(() => (
+    <WorkspaceControls
+      theme={theme}
+      setTheme={setTheme}
+    />
+  ), [theme]);
+
   return <ErrorBoundary>
-    <AppView/>
+    <V2App workspaceControls={controls}/>
   </ErrorBoundary>;
 }
 

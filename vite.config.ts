@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config'
+import tailwindcss from '@tailwindcss/vite'
 import { loadEnv } from 'vite'
 
 const defaultSiteUrl = 'http://localhost:8080'
@@ -27,6 +28,12 @@ function requireProductionSiteUrl(siteUrl: string, env: Record<string, string>, 
   return siteUrl
 }
 
+function acceptLocalVisitorEvent(_request: unknown, response: { statusCode: number; setHeader: (name: string, value: string) => void; end: (body: string) => void }) {
+  response.statusCode = 202
+  response.setHeader('content-type', 'application/json; charset=utf-8')
+  response.end('{}')
+}
+
 // Keep the MVP deliberately simple: Vite's esbuild transform handles TSX.
 // Avoid React Fast Refresh injection in this environment, which can fail when
 // the refresh preamble is not initialized by the browser harness.
@@ -43,20 +50,24 @@ export default defineConfig(({ mode }) => {
     plugins: [
       {
         name: 'site-url-metadata',
+        enforce: 'post',
         transformIndexHtml(html) {
-          return html.replaceAll('__SITE_URL__', siteUrl)
+          return html
+            .replaceAll('__SITE_URL__', siteUrl)
+            .replaceAll(`"/${siteUrl}`, `"${siteUrl}`)
+            .replaceAll(`'/${siteUrl}`, `'${siteUrl}`)
         },
       },
       {
         name: 'local-visitor-events',
         configureServer(server) {
-          server.middlewares.use('/api/events', (_request, response) => {
-            response.statusCode = 202
-            response.setHeader('content-type', 'application/json; charset=utf-8')
-            response.end('{}')
-          })
+          server.middlewares.use('/api/events', acceptLocalVisitorEvent)
+        },
+        configurePreviewServer(server) {
+          server.middlewares.use('/api/events', acceptLocalVisitorEvent)
         },
       },
+      tailwindcss(),
     ],
     test: {
       environment: 'jsdom',

@@ -13,6 +13,7 @@ const expectedWorkflows = [
   "eks-preview-cleanup.yml",
   "eks-preview.yml",
   "ghcr-preview-cleanup.yml",
+  "lighthouse.yml",
   "secret-scan.yml",
   "security.yml",
   "static-deploy.yml",
@@ -154,6 +155,8 @@ assertAll(
     "npm ci --include=optional",
     "require('lightningcss')",
     "git diff --quiet -- src/data/versions.ts scripts/public-routes.js",
+    "Skipping dependency install and full app validation to conserve scheduled workflow minutes.",
+    "if: steps.data_changes.outputs.changed == 'true'",
     "npm run check:public-readiness",
     "npm test",
     "npm run lint",
@@ -245,6 +248,22 @@ assertAll(
   ecrPublish,
   ["workflow_dispatch:", "aws-actions/configure-aws-credentials@v6", "mask-aws-account-id: true"],
   "ecr-publish.yml",
+)
+
+const lighthouse = await readWorkflow("lighthouse.yml")
+assertAll(
+  lighthouse,
+  [
+    "permissions:\n  contents: read",
+    "npm ci --include=optional",
+    "npm run build",
+    "SITE_URL=https://eks-upgrade-planner.bozhi.dev npx vite preview --host 127.0.0.1 --port 4177",
+    "npx --yes lighthouse http://127.0.0.1:4177/app",
+    "--only-categories=performance,accessibility,best-practices,seo",
+    "node scripts/assert-lighthouse-budget.mjs /tmp/lighthouse.json",
+    "actions/upload-artifact@v6",
+  ],
+  "lighthouse.yml",
 )
 
 console.log("workflow contracts passed")

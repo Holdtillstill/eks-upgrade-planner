@@ -1,0 +1,20 @@
+# EKS Upgrade Planner
+
+EKS Upgrade Planner is a browser-local planning tool for Amazon EKS Kubernetes upgrades. It helps users inspect lifecycle dates, estimate extended support cost, plan minor-version hops, check add-on readiness, scan pasted manifests for deprecated Kubernetes APIs, and assemble an evidence packet for change approvals.
+
+## Key Pages
+
+- [Overview](https://eks-upgrade-planner.bozhi.dev/app): Fleet scope, upgrade path, deadline, and readiness summary.
+- [Lifecycle Registry](https://eks-upgrade-planner.bozhi.dev/eks/versions): EKS version lifecycle table with fleet source and target highlights.
+- [Cost Model](https://eks-upgrade-planner.bozhi.dev/eks/extended-support-cost-calculator): Extended support fee scenarios.
+- [Upgrade Plan](https://eks-upgrade-planner.bozhi.dev/eks/upgrade-planner): Fleet and single-release change plans.
+- [Deprecated API Scanner](https://eks-upgrade-planner.bozhi.dev/eks/deprecated-api-scanner): Local static manifest scan for removed or deprecated Kubernetes APIs.
+- [Add-ons](https://eks-upgrade-planner.bozhi.dev/eks/addons): Managed and common add-on compatibility checks.
+- [Evidence Pack](https://eks-upgrade-planner.bozhi.dev/eks/evidence-pack): Copyable approval packet with gates, citations, scanner findings, add-on readiness, and waiver state.
+
+## Primary Sources
+
+- [Amazon EKS Kubernetes versions](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
+- [Amazon EKS pricing](https://aws.amazon.com/eks/pricing/)
+- [Updating an Amazon EKS cluster](https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html)
+- [Kubernetes API deprecation guide](https://kubernetes.io/docs/reference/using-api/deprecation-guide/)

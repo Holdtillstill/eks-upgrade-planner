@@ -7,12 +7,12 @@ const VISITOR_ENDPOINT = 'https://on-demand-demos.bozhi.dev/api/events';
 const VISITOR_ENDPOINTS = Array.from(new Set([VISITOR_ENDPOINT, `${WEB_BASE}/api/events`]));
 
 const routes = [
-  { path: '/', markers: ['EKS Upgrade Planner', 'Upgrade path'] },
-  { path: '/app', markers: ['EKS Upgrade Planner', 'Upgrade path'] },
-  { path: '/eks/deprecated-api-scanner', markers: ['Local manifest scan', 'static ruleset'] },
-  { path: '/eks/1-35-upgrade-guide', markers: ['EKS 1.35', 'lifecycle brief'] },
-  { path: '/eks/addons', markers: ['Add-on readiness checklist', 'Amazon VPC CNI'] },
-  { path: '/addons/karpenter/eks-compatibility', markers: ['Karpenter', 'Node provisioning APIs'] },
+  { path: '/', markers: ['EKS Upgrade Planner', 'UPGRADE PATH'] },
+  { path: '/app', markers: ['EKS Upgrade Planner', 'UPGRADE PATH'] },
+  { path: '/eks/deprecated-api-scanner', markers: ['Manifest scanner', 'Target-impact rule library'] },
+  { path: '/eks/1-35-upgrade-guide', markers: ['EKS 1.35', 'LIFECYCLE BRIEF'] },
+  { path: '/eks/addons', markers: ['ADD-ONS', 'Target compatibility matrix'] },
+  { path: '/addons/karpenter/eks-compatibility', markers: ['Karpenter', 'Target compatibility matrix'] },
 ];
 
 const profiles = [

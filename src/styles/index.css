@@ -1,0 +1,37 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-packet,
+  .print-packet * {
+    visibility: visible;
+  }
+
+  .print-packet {
+    position: absolute;
+    inset: 0;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .print-packet pre {
+    max-height: none !important;
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .print-packet .no-print,
+  .print-packet button {
+    display: none !important;
+  }
+}

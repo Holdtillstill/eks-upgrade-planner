@@ -26,11 +26,6 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Install dependencies
-        run: |
-          npm ci --include=optional
-          node -e "require('lightningcss')"
-
       - name: Refresh static EKS data
         run: npm run data:update
 
@@ -46,7 +41,20 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: No source drift detected
+        if: steps.data_changes.outputs.changed == 'false'
+        run: |
+          echo "EKS live source data matches the checked-in static dataset."
+          echo "Skipping dependency install and full app validation to conserve scheduled workflow minutes."
+
+      - name: Install dependencies
+        if: steps.data_changes.outputs.changed == 'true'
+        run: |
+          npm ci --include=optional
+          node -e "require('lightningcss')"
+
       - name: Validate refreshed app
+        if: steps.data_changes.outputs.changed == 'true'
         run: |
           npm run check:public-readiness
           npm test

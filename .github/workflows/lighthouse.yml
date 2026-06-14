@@ -1,0 +1,58 @@
+name: Lighthouse
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=optional
+
+      - name: Build static app
+        run: npm run build
+
+      - name: Start preview server
+        run: |
+          SITE_URL=https://eks-upgrade-planner.bozhi.dev npx vite preview --host 127.0.0.1 --port 4177 > /tmp/vite-preview.log 2>&1 &
+          echo "$!" > /tmp/vite-preview.pid
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:4177/app > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/vite-preview.log
+          exit 1
+
+      - name: Run Lighthouse
+        run: |
+          npx --yes lighthouse http://127.0.0.1:4177/app \
+            --chrome-flags="--headless --no-sandbox" \
+            --only-categories=performance,accessibility,best-practices,seo \
+            --output=json \
+            --output-path=/tmp/lighthouse.json
+
+      - name: Assert Lighthouse budget
+        run: node scripts/assert-lighthouse-budget.mjs /tmp/lighthouse.json
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: lighthouse-report
+          path: /tmp/lighthouse.json

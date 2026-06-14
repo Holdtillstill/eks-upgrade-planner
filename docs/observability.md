@@ -23,7 +23,6 @@ Route labels are normalized to avoid high cardinality:
 - `/eks/:version-upgrade-guide`
 - `/addons/:addon/eks-compatibility`
 - `/assets/*`
-- `/:design` when design explorations are enabled outside production
 - `/not-found`
 
 Key metrics:

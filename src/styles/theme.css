@@ -1,0 +1,602 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+
+  /* ── Typography ─────────────────────────────── */
+  --font-size: 14px;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+
+  /* ── Workspace surfaces ─────────────────────── */
+  --background:        #F4F7FA;
+  --foreground:        #101722;
+  --card:              #FFFFFF;
+  --card-foreground:   #101722;
+  --popover:           #FFFFFF;
+  --popover-foreground:#101722;
+
+  /* ── Interactive ────────────────────────────── */
+  --primary:           #0F766E;
+  --primary-foreground:#FFFFFF;
+  --secondary:         #EBF0F5;
+  --secondary-foreground: #172033;
+
+  /* ── Subdued surfaces ───────────────────────── */
+  --muted:             #EBF0F5;
+  --muted-foreground:  #536276;
+  --accent:            #E3F2EF;
+  --accent-foreground: #0A5D53;
+
+  /* ── Semantic ───────────────────────────────── */
+  --destructive:       #B8322C;
+  --destructive-foreground: #FFFFFF;
+
+  /* ── EKS semantic palette ───────────────────── */
+  --eks-teal:          #0F766E;
+  --eks-teal-bg:       #E3F2EF;
+  --eks-teal-border:   #5BBFB0;
+
+  --eks-success:       #166534;
+  --eks-success-bg:    #E5F5ED;
+  --eks-success-border:#86D4A9;
+
+  --eks-warning:       #92400E;
+  --eks-warning-bg:    #FEF3E2;
+  --eks-warning-border:#F5C87A;
+
+  --eks-danger:        #991B1B;
+  --eks-danger-bg:     #FDEAEA;
+  --eks-danger-border: #F5A5A2;
+
+  --eks-info:          #1D4ED8;
+  --eks-info-bg:       #E5F0FA;
+  --eks-info-border:   #7BB8E8;
+
+  /* ── Cross-version semantic aliases ─────────── */
+  --success:            var(--eks-success);
+  --success-bg:         var(--eks-success-bg);
+  --success-border:     var(--eks-success-border);
+  --warning:            var(--eks-warning);
+  --warning-bg:         var(--eks-warning-bg);
+  --warning-border:     var(--eks-warning-border);
+  --danger:             var(--eks-danger);
+  --danger-bg:          var(--eks-danger-bg);
+  --danger-border:      var(--eks-danger-border);
+  --info:               var(--eks-info);
+  --info-bg:            var(--eks-info-bg);
+  --info-border:        var(--eks-info-border);
+  --primary-light:      #14B8A6;
+  --border-solid:       var(--border);
+
+  /* ── Structure ──────────────────────────────── */
+  --border:            #D8E1EA;
+  --input:             #FFFFFF;
+  --input-background:  #F4F7FA;
+  --switch-background: #B0BCC9;
+  --ring:              #118374;
+
+  /* ── Charts ─────────────────────────────────── */
+  --chart-1: #118374;
+  --chart-2: #1764AA;
+  --chart-3: #B56B1D;
+  --chart-4: #19764A;
+  --chart-5: #7C3AED;
+
+  /* ── Radius ─────────────────────────────────── */
+  --radius: 0.375rem;   /* 6px — restrained */
+
+  /* ── Dark nav rail ──────────────────────────── */
+  --sidebar:                   #0D1722;
+  --sidebar-foreground:        #8DA6BE;
+  --sidebar-primary:           #0F766E;
+  --sidebar-primary-foreground:#FFFFFF;
+  --sidebar-accent:            #162233;
+  --sidebar-accent-foreground: #E0EAF4;
+  --sidebar-border:            #1C2E42;
+  --sidebar-ring:              #0F766E;
+
+  /* ── V2 dark chrome ─────────────────────────── */
+  --chrome:             #0D1722;
+  --chrome-surface:     #162233;
+  --chrome-hover:       rgba(255, 255, 255, 0.06);
+  --chrome-active:      rgba(255, 255, 255, 0.10);
+  --chrome-border:      #1C2E42;
+  --chrome-text:        #E0EAF4;
+  --chrome-muted:       #8DA6BE;
+  --chrome-accent:      var(--primary);
+}
+
+html[data-app-version='v2'] {
+  --font-size: 13px;
+  --background:           #F0F4F8;
+  --foreground:           #0D1117;
+  --card:                 #FFFFFF;
+  --card-foreground:      #0D1117;
+  --primary:              #0F766E;
+  --primary-light:        #14B8A6;
+  --primary-foreground:   #FFFFFF;
+  --secondary:            #F0F4F8;
+  --secondary-foreground: #374151;
+  --muted:                #F0F4F8;
+  --muted-foreground:     #475569;
+  --accent:               #E0F2FE;
+  --accent-foreground:    #0C4A6E;
+  --border:               rgba(13, 17, 23, 0.09);
+  --border-solid:         #E2E8F0;
+  --input:                #FFFFFF;
+  --input-background:     #F8FAFC;
+  --switch-background:    #CBD5E1;
+  --ring:                 #0F766E;
+  --radius:               0.5rem;
+  --success:              #166534;
+  --success-bg:           #ECFDF5;
+  --success-border:       #6EE7B7;
+  --warning:              #92400E;
+  --warning-bg:           #FFFBEB;
+  --warning-border:       #FCD34D;
+  --danger:               #991B1B;
+  --danger-bg:            #FEF2F2;
+  --danger-border:        #FCA5A5;
+  --info:                 #1D4ED8;
+  --info-bg:              #EFF6FF;
+  --info-border:          #BFDBFE;
+  --eks-teal:             var(--primary);
+  --eks-teal-bg:          rgba(15, 118, 110, 0.06);
+  --eks-teal-border:      #67E8F9;
+  --eks-success:          var(--success);
+  --eks-success-bg:       var(--success-bg);
+  --eks-success-border:   var(--success-border);
+  --eks-warning:          var(--warning);
+  --eks-warning-bg:       var(--warning-bg);
+  --eks-warning-border:   var(--warning-border);
+  --eks-danger:           var(--danger);
+  --eks-danger-bg:        var(--danger-bg);
+  --eks-danger-border:    var(--danger-border);
+  --eks-info:             var(--info);
+  --eks-info-bg:          var(--info-bg);
+  --eks-info-border:      var(--info-border);
+  --chart-1:              #0F766E;
+  --chart-2:              #2563EB;
+  --chart-3:              #D97706;
+  --chart-4:              #059669;
+  --chart-5:              #7C3AED;
+  --chrome:               #FFFFFF;
+  --chrome-surface:       #F8FAFC;
+  --chrome-hover:         rgba(15, 23, 42, 0.06);
+  --chrome-active:        rgba(15, 118, 110, 0.10);
+  --chrome-border:        rgba(15, 23, 42, 0.10);
+  --chrome-text:          #0F172A;
+  --chrome-muted:         #64748B;
+  --chrome-accent:        #0F766E;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background:        #0D1117;
+  --foreground:        #E6EDF3;
+  --card:              #161B22;
+  --card-foreground:   #E6EDF3;
+  --popover:           #161B22;
+  --popover-foreground:#E6EDF3;
+  --primary:           #14B8A6;
+  --primary-foreground:#022C22;
+  --secondary:         #21262D;
+  --secondary-foreground: #E6EDF3;
+  --muted:             #21262D;
+  --muted-foreground:  #8B949E;
+  --accent:            #123B3A;
+  --accent-foreground: #CCFBF1;
+  --destructive:       #F87171;
+  --destructive-foreground: #FFFFFF;
+  --border:            #30363D;
+  --border-solid:      #30363D;
+  --input:             #21262D;
+  --input-background:  #161B22;
+  --switch-background: #30363D;
+  --ring:              #14B8A6;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --eks-teal:          #14B8A6;
+  --eks-teal-bg:       #123B3A;
+  --eks-teal-border:   #2DD4BF;
+  --eks-success:       #34D399;
+  --eks-success-bg:    #0F2F28;
+  --eks-success-border:#047857;
+  --eks-warning:       #FBBF24;
+  --eks-warning-bg:    #3B2A0A;
+  --eks-warning-border:#B45309;
+  --eks-danger:        #F87171;
+  --eks-danger-bg:     #3A1518;
+  --eks-danger-border: #B91C1C;
+  --eks-info:          #60A5FA;
+  --eks-info-bg:       #10233F;
+  --eks-info-border:   #2563EB;
+  --success:           var(--eks-success);
+  --success-bg:        var(--eks-success-bg);
+  --success-border:    var(--eks-success-border);
+  --warning:           var(--eks-warning);
+  --warning-bg:        var(--eks-warning-bg);
+  --warning-border:    var(--eks-warning-border);
+  --danger:            var(--eks-danger);
+  --danger-bg:         var(--eks-danger-bg);
+  --danger-border:     var(--eks-danger-border);
+  --info:              var(--eks-info);
+  --info-bg:           var(--eks-info-bg);
+  --info-border:       var(--eks-info-border);
+  --primary-light:     #5EEAD4;
+  --chart-1: #14B8A6;
+  --chart-2: #60A5FA;
+  --chart-3: #FBBF24;
+  --chart-4: #34D399;
+  --chart-5: #A78BFA;
+  --sidebar:                   #0D1117;
+  --sidebar-foreground:        #B7C6D8;
+  --sidebar-primary:           #14B8A6;
+  --sidebar-primary-foreground:#FFFFFF;
+  --sidebar-accent:            #161B22;
+  --sidebar-accent-foreground: #E6EDF3;
+  --sidebar-border:            #30363D;
+  --sidebar-ring:              #14B8A6;
+  --chrome:             #0D1117;
+  --chrome-surface:     #161B22;
+  --chrome-hover:       rgba(255, 255, 255, 0.08);
+  --chrome-active:      rgba(255, 255, 255, 0.12);
+  --chrome-border:      #30363D;
+  --chrome-text:        #E6EDF3;
+  --chrome-muted:       #8B949E;
+  --chrome-accent:      var(--primary);
+}
+
+html.dark[data-app-version='v2'] {
+  --font-size: 13px;
+  --background: #0D1117;
+  --foreground: #E6EDF3;
+  --card: #161B22;
+  --card-foreground: #E6EDF3;
+  --primary: #14B8A6;
+  --primary-foreground: #022C22;
+  --secondary: #21262D;
+  --secondary-foreground: #E6EDF3;
+  --muted: #21262D;
+  --muted-foreground: #A7B0BD;
+  --accent: #21262D;
+  --accent-foreground: #E6EDF3;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-solid: #30363D;
+  --input: #21262D;
+  --input-background: #161B22;
+  --switch-background: #30363D;
+  --ring: #14B8A6;
+  --success: #34D399;
+  --success-bg: #052E26;
+  --success-border: #047857;
+  --warning: #FBBF24;
+  --warning-bg: #3B2A0A;
+  --warning-border: #B45309;
+  --danger: #F87171;
+  --danger-bg: #3A1518;
+  --danger-border: #B91C1C;
+  --info: #60A5FA;
+  --info-bg: #10233F;
+  --info-border: #2563EB;
+  --eks-teal: var(--primary);
+  --eks-teal-bg: rgba(20, 184, 166, 0.12);
+  --eks-teal-border: #2DD4BF;
+  --eks-success: var(--success);
+  --eks-success-bg: var(--success-bg);
+  --eks-success-border: var(--success-border);
+  --eks-warning: var(--warning);
+  --eks-warning-bg: var(--warning-bg);
+  --eks-warning-border: var(--warning-border);
+  --eks-danger: var(--danger);
+  --eks-danger-bg: var(--danger-bg);
+  --eks-danger-border: var(--danger-border);
+  --eks-info: var(--info);
+  --eks-info-bg: var(--info-bg);
+  --eks-info-border: var(--info-border);
+  --chart-1: #14B8A6;
+  --chart-2: #60A5FA;
+  --chart-3: #FBBF24;
+  --chart-4: #34D399;
+  --chart-5: #A78BFA;
+  --chrome: #0D1117;
+  --chrome-surface: #161B22;
+  --chrome-hover: rgba(255, 255, 255, 0.08);
+  --chrome-active: rgba(255, 255, 255, 0.12);
+  --chrome-border: rgba(255,255,255,0.08);
+  --chrome-text: #E6EDF3;
+  --chrome-muted: #A7B0BD;
+  --chrome-accent: #14B8A6;
+}
+
+@theme inline {
+  /* ── Font families ─────────────────────────── */
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+
+  /* ── EKS semantic colors → Tailwind classes ─── */
+  --color-eks-teal:          var(--eks-teal);
+  --color-eks-teal-bg:       var(--eks-teal-bg);
+  --color-eks-teal-border:   var(--eks-teal-border);
+  --color-eks-success:       var(--eks-success);
+  --color-eks-success-bg:    var(--eks-success-bg);
+  --color-eks-warning:       var(--eks-warning);
+  --color-eks-warning-bg:    var(--eks-warning-bg);
+  --color-eks-warning-border: var(--eks-warning-border);
+  --color-eks-danger:        var(--eks-danger);
+  --color-eks-danger-bg:     var(--eks-danger-bg);
+  --color-eks-danger-border: var(--eks-danger-border);
+  --color-eks-info:          var(--eks-info);
+  --color-eks-info-bg:       var(--eks-info-bg);
+  --color-eks-info-border:   var(--eks-info-border);
+  --color-success:           var(--success);
+  --color-success-bg:        var(--success-bg);
+  --color-success-border:    var(--success-border);
+  --color-warning:           var(--warning);
+  --color-warning-bg:        var(--warning-bg);
+  --color-warning-border:    var(--warning-border);
+  --color-danger:            var(--danger);
+  --color-danger-bg:         var(--danger-bg);
+  --color-danger-border:     var(--danger-border);
+  --color-info:              var(--info);
+  --color-info-bg:           var(--info-bg);
+  --color-info-border:       var(--info-border);
+  --color-primary-light:     var(--primary-light);
+  --color-border-solid:      var(--border-solid);
+  --color-chrome:            var(--chrome);
+  --color-chrome-surface:    var(--chrome-surface);
+  --color-chrome-hover:      var(--chrome-hover);
+  --color-chrome-active:     var(--chrome-active);
+  --color-chrome-border:     var(--chrome-border);
+  --color-chrome-text:       var(--chrome-text);
+  --color-chrome-muted:      var(--chrome-muted);
+  --color-chrome-accent:     var(--chrome-accent);
+
+  /* ── Standard token → Tailwind classes ──────── */
+  --color-background:              var(--background);
+  --color-foreground:              var(--foreground);
+  --color-card:                    var(--card);
+  --color-card-foreground:         var(--card-foreground);
+  --color-popover:                 var(--popover);
+  --color-popover-foreground:      var(--popover-foreground);
+  --color-primary:                 var(--primary);
+  --color-primary-foreground:      var(--primary-foreground);
+  --color-secondary:               var(--secondary);
+  --color-secondary-foreground:    var(--secondary-foreground);
+  --color-muted:                   var(--muted);
+  --color-muted-foreground:        var(--muted-foreground);
+  --color-accent:                  var(--accent);
+  --color-accent-foreground:       var(--accent-foreground);
+  --color-destructive:             var(--destructive);
+  --color-destructive-foreground:  var(--destructive-foreground);
+  --color-border:                  var(--border);
+  --color-input:                   var(--input);
+  --color-input-background:        var(--input-background);
+  --color-switch-background:       var(--switch-background);
+  --color-ring:                    var(--ring);
+  --color-chart-1:                 var(--chart-1);
+  --color-chart-2:                 var(--chart-2);
+  --color-chart-3:                 var(--chart-3);
+  --color-chart-4:                 var(--chart-4);
+  --color-chart-5:                 var(--chart-5);
+  --radius-sm:  calc(var(--radius) - 2px);
+  --radius-md:  var(--radius);
+  --radius-lg:  calc(var(--radius) + 2px);
+  --radius-xl:  calc(var(--radius) + 6px);
+  --color-sidebar:                       var(--sidebar);
+  --color-sidebar-foreground:            var(--sidebar-foreground);
+  --color-sidebar-primary:               var(--sidebar-primary);
+  --color-sidebar-primary-foreground:    var(--sidebar-primary-foreground);
+  --color-sidebar-accent:                var(--sidebar-accent);
+  --color-sidebar-accent-foreground:     var(--sidebar-accent-foreground);
+  --color-sidebar-border:                var(--sidebar-border);
+  --color-sidebar-ring:                  var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-size: var(--font-size);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html { font-size: var(--font-size); }
+
+  /* Quiet scrollbars */
+  ::-webkit-scrollbar        { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+  /* Base heading scale */
+  h1 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+  h2 { font-size: 1.0rem;  font-weight: 600; line-height: 1.4; }
+  h3 { font-size: 0.875rem; font-weight: 500; line-height: 1.4; }
+  h4 { font-size: 0.8125rem; font-weight: 500; line-height: 1.4; }
+
+  label  { font-size: 0.8125rem; font-weight: 500; }
+  button { font-size: 0.8125rem; font-weight: 500; }
+  input  { font-size: 0.8125rem; }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  .app-error {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  .app-error section {
+    max-width: 640px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    padding: 28px;
+  }
+
+  .app-error h1 {
+    font-size: 2.25rem;
+    line-height: 1;
+    margin: 0 0 12px;
+  }
+
+  .app-error p {
+    color: var(--muted-foreground);
+    line-height: 1.6;
+  }
+
+  .app-error button {
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    padding: 10px 12px;
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  .v2-app .card-shadow {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 4%);
+  }
+
+  .v2-app .card-shadow-md {
+    box-shadow: 0 4px 12px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 4%);
+  }
+
+  .v2-app .card-shadow > .border-b:first-child,
+  .v2-app .card-shadow > .flex.border-b:first-child,
+  .v2-app .card-shadow > .px-5.py-3.border-b:first-child {
+    background-color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .v2-app input:not([type='range']),
+  .v2-app select,
+  .v2-app textarea {
+    background-color: var(--muted);
+    border-color: var(--border-solid);
+    color: var(--foreground);
+  }
+
+  .v2-app pre {
+    background-color: var(--muted);
+    color: var(--foreground);
+    line-height: 1.8;
+  }
+
+  .v2-app thead tr {
+    background-color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .v2-app th {
+    color: var(--muted-foreground);
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .v2-app tbody tr {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .v2-app tbody tr:hover {
+    background-color: color-mix(in srgb, var(--primary) 4%, transparent);
+  }
+
+  .rounded-lg.border,
+  .rounded.border,
+  .rounded.overflow-hidden.border {
+    background-color: var(--card);
+    border-color: var(--border);
+  }
+
+  .rounded-lg.border > .border-b:first-child,
+  .rounded.border > .border-b:first-child,
+  .rounded.overflow-hidden.border > .border-b:first-child {
+    background-color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .border,
+  .border-t,
+  .border-r,
+  .border-b,
+  .border-l {
+    border-color: var(--border);
+  }
+
+  input[type='range'],
+  .range-control {
+    accent-color: var(--eks-teal);
+  }
+
+  .range-control {
+    width: 100%;
+    height: 24px;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .range-control::-webkit-slider-runnable-track {
+    height: 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--muted);
+  }
+
+  .range-control::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    margin-top: -7px;
+    appearance: none;
+    border: 2px solid var(--card);
+    border-radius: 999px;
+    background: var(--eks-teal);
+    box-shadow: 0 1px 4px rgb(16 23 34 / 18%);
+  }
+
+  .range-control::-moz-range-track {
+    height: 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--muted);
+  }
+
+  .range-control::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--card);
+    border-radius: 999px;
+    background: var(--eks-teal);
+    box-shadow: 0 1px 4px rgb(16 23 34 / 18%);
+  }
+}

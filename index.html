@@ -8,6 +8,19 @@
     <link rel="canonical" href="__SITE_URL__/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
+    <script>
+      (() => {
+        try {
+          const theme = localStorage.getItem('eks-upgrade-planner:theme') === 'dark' ? 'dark' : 'light';
+          const root = document.documentElement;
+          root.classList.toggle('dark', theme === 'dark');
+          root.dataset.theme = theme;
+          root.dataset.appVersion = 'v2';
+        } catch {
+          document.documentElement.dataset.appVersion = 'v2';
+        }
+      })();
+    </script>
     <meta
       name="description"
       content="Plan Amazon EKS Kubernetes upgrades with lifecycle deadlines, extended support cost estimates, upgrade hops, add-on checks, and local deprecated API scanning."

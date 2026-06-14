@@ -2,20 +2,6 @@ name: Deploy static site
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/static-deploy.yml
-      - index.html
-      - package-lock.json
-      - package.json
-      - infra/cloudfront/**
-      - infra/terraform/static-hosting/**
-      - public/**
-      - server/security.js
-      - scripts/**
-      - src/**
 
 permissions:
   contents: read

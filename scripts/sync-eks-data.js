@@ -175,6 +175,7 @@ function formatVersionObject(version) {
     version.latestPlatform ? `latestPlatform: '${version.latestPlatform}'` : null,
     `sourceLabel: '${version.sourceLabel}'`,
     `sourceUrl: '${version.sourceUrl}'`,
+    version.notesUrl ? `notesUrl: '${version.notesUrl}'` : null,
     version.releaseUrl ? `releaseUrl: '${version.releaseUrl}'` : null,
   ].filter(Boolean);
   return `  { ${entries.join(', ')} }`;
@@ -268,7 +269,7 @@ function diffVersions(existing, expected) {
       diffs.push(`~ row ${index + 1}: expected EKS ${next.version}, found EKS ${current.version}`);
       continue;
     }
-    for (const key of ['releaseDate', 'standardSupportEnd', 'extendedSupportEnd', 'latestPlatform', 'sourceLabel', 'sourceUrl', 'releaseUrl']) {
+    for (const key of ['releaseDate', 'standardSupportEnd', 'extendedSupportEnd', 'latestPlatform', 'sourceLabel', 'sourceUrl', 'notesUrl', 'releaseUrl']) {
       if ((current[key] ?? null) !== (next[key] ?? null)) {
         diffs.push(`~ EKS ${current.version} ${key}: ${current[key] ?? 'missing'} -> ${next[key] ?? 'missing'}`);
       }

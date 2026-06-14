@@ -124,3 +124,7 @@ is working.
 Expected incremental cost is lowest when production is S3/CloudFront and EKS is
 only a shared, on-demand preview target. A dedicated EKS cluster or dedicated
 ALB for this app would cost more than the app justifies.
+
+The production static deploy workflow is manual-only by design. Do not deploy
+on every push unless there is a deliberate release process that justifies the
+Actions minutes, S3 sync, CloudFront invalidation, and public smoke-test runs.
